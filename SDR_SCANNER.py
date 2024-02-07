@@ -2,6 +2,7 @@ import sys
 import time
 import argparse
 import numpy as np
+import time
 import os
 import json
 import zmq
@@ -28,7 +29,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdi
 # The time duration of the captured signal is determined by the number of samples and the sample rate.
 # For example, if you choose 131072 samples and have a sample rate of 2.4 MS/s (2,400,000 samples per second),
 # the time duration of the captured data 
-would be 131072 / 2,400,000 = 0.0547 seconds.
+# would be 131072 / 2,400,000 = 0.0547 seconds.
 # This means that the data you're processing represents a signal captured over 54.7 milliseconds.
 #
 # Equation:
@@ -97,7 +98,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '20', 'threshold': '0.75', 'lnb lo': '-125000000', 'start': '93000000', 'stop': '95500000', 'step': '100000'}
+        default_values = {'ppm': '5', 'gain': '20', 'threshold': '0.75', 'lnb lo': '-125000000', 'start': '88000000', 'stop': '108500000', 'step': '100000'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -137,6 +138,8 @@ class ScannerApp(QtWidgets.QMainWindow):
         sdr.err_ppm = args.ppm
         sdr.gain = args.gain
 
+        t0 = time.time()
+
         lo_frequency = args.lo
 
         freq = args.start
@@ -149,7 +152,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             try:
                 tune_to_frequency(sdr, freq, lo_frequency)
                 iq_samples = self.read_samples(sdr, freq)
-                iq_samples = sig.decimate(iq_samples, 48)
+                iq_samples = sig.decimate(iq_samples, 80)
 
                 f, psd = sig.welch(iq_samples, fs=sample_rate / 48, nperseg=1024)
                 peak_indices, frequencies = find_highest_magnitudes(psd, num_peaks=1, sample_rate=sample_rate / 48, fft_size=1024)
@@ -179,6 +182,19 @@ class ScannerApp(QtWidgets.QMainWindow):
         print("\nDetected radio stations:")
         for station in radio_stations:
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
+        
+        t1 = time.time()
+
+        total = t1- t0
+        print(f'\n El tiempo de escaneo fue: {total} segundos')
+
+        plt.figure(figsize=(10, 6))
+        plt.semilogy(f, psd)  # Utiliza semilogy para una escala logarítmica en el eje y
+        plt.title('Densidad Espectral de Potencia')
+        plt.xlabel('Frecuencia (Hz)')
+        plt.ylabel('PSD')
+        plt.grid(True)
+        plt.show()
 
         # Harmonic and shape detection
         harmonic_candidates = detect_harmonics(radio_stations)
