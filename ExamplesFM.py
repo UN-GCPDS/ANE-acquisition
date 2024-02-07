@@ -2,6 +2,7 @@ import sys
 import time
 import argparse
 import numpy as np
+import csv
 import os
 import json
 import zmq
@@ -27,8 +28,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdi
 # 2. Consider the time resolution:
 # The time duration of the captured signal is determined by the number of samples and the sample rate.
 # For example, if you choose 131072 samples and have a sample rate of 2.4 MS/s (2,400,000 samples per second),
-# the time duration of the captured data 
-would be 131072 / 2,400,000 = 0.0547 seconds.
+# the time duration of the captured data would be 131072 / 2,400,000 = 0.0547 seconds.
 # This means that the data you're processing represents a signal captured over 54.7 milliseconds.
 #
 # Equation:
@@ -39,6 +39,7 @@ num_samples = 131072
 sample_rate = 2.4e6  # 2.4 MS/s
 time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 milliseconds
 
+csv_file_path = r'C:\Users\ASUS\Documents\ANEproject\radio_stations_data.csv'
 
 #this is good at finding FM radio stations... but AM radio stations are going to be a challange because bad antenna... but in theory if connection is good and no interference
 #it should work well for AM signals... I wonder if I can create an app that will be able to tell what devices are interfering based on the frequency of the signal
@@ -97,7 +98,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '20', 'threshold': '0.75', 'lnb lo': '-125000000', 'start': '93000000', 'stop': '95500000', 'step': '100000'}
+        default_values = {'ppm': '5', 'gain': '20', 'threshold': '0.85', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108000000', 'step': '100000'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -118,7 +119,9 @@ class ScannerApp(QtWidgets.QMainWindow):
     @pyqtSlot()
     def start_scan(self):
         args = self.get_args()
-        self.scan(args)
+        while True:
+            self.scan(args)
+            time.sleep(5)
 
     def get_args(self):
         return argparse.Namespace(
@@ -142,7 +145,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         freq = args.start
         radio_stations = []
         last_detected_station = None
-        min_distance = 200000  # Minimum distance between stations in Hz
+        min_distance = 100000  # Minimum distance between stations in Hz
         radio_psd_threshold = 2e-08
         while freq <= args.stop:
             print(f"Scanning frequency: {freq / 1e6} MHz")
@@ -176,9 +179,18 @@ class ScannerApp(QtWidgets.QMainWindow):
 
         sdr.close()
 
-        print("\nDetected radio stations:")
-        for station in radio_stations:
-            print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            fieldnames = ['Frequency (MHz)']
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            # Escribir la cabecera
+            writer.writeheader()
+
+            print("\nDetected radio stations:")
+            for station in radio_stations:
+                print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
+                writer.writerow({'Frequency (MHz)': station['freq'] / 1e6})
+
+        
 
         # Harmonic and shape detection
         harmonic_candidates = detect_harmonics(radio_stations)
@@ -200,7 +212,10 @@ class ScannerApp(QtWidgets.QMainWindow):
         return iq_samples
 
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     window = ScannerApp()
     sys.exit(app.exec_())
+
+
