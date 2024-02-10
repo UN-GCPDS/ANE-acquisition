@@ -3,9 +3,6 @@ import time
 import argparse
 import numpy as np
 import time
-import os
-import json
-import zmq
 import matplotlib.pyplot as plt
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSlot
