@@ -4,7 +4,6 @@ import argparse
 import numpy as np
 import os
 import json
-import zmq
 import matplotlib.pyplot as plt
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSlot
@@ -98,6 +97,9 @@ def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=102
     bin_width = sample_rate / fft_size
     frequencies = peak_indices * bin_width
     return peak_indices, frequencies
+
+def optimal_decimation(list_frequencies):
+    pass
 
 class ScannerApp(QtWidgets.QMainWindow):
     def __init__(self):
