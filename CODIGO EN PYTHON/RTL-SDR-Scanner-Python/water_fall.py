@@ -32,6 +32,9 @@ from rtlsdr import RtlSdr
 # * Press "+" and "-" to control gain, and space to enable AGC.
 # * Type a frequency (in MHz) and press enter to directly change the center frequency
 
+#NNFT --> NUMERO DE MUESTRAS 
+#NUM_SAMPLES_PER_SCAN --> NUMERO DE MUESTRAS  POR ESCANEO
+
 NFFT = 1024*4
 NUM_SAMPLES_PER_SCAN = NFFT*16
 NUM_BUFFERED_SWEEPS = 100
@@ -143,13 +146,11 @@ class Waterfall(object):
             print(np.argmax(self.image_buffer[0, start_ind: start_ind+NFFT]))
             
 
-
         # plot entire sweep
         self.image.set_array(self.image_buffer)
 
         # restore original center freq.
         self.sdr.fc = start_fc
-        print(start_fc,self.image)
         return self.image,
 
     def start(self):
@@ -161,7 +162,7 @@ class Waterfall(object):
             blit = False
         else:
             blit = True
-        ani = animation.FuncAnimation(self.fig, self.update, interval=50,
+        ani = animation.FuncAnimation(self.fig, self.update, interval=1,
                 blit=blit)
 
         pyl.show()
@@ -175,7 +176,7 @@ def main():
 
     # some defaults
     sdr.rs = 2.4e6
-    sdr.fc = 90e6
+    sdr.fc = 92e6
     sdr.gain = 10
 
     wf.start()

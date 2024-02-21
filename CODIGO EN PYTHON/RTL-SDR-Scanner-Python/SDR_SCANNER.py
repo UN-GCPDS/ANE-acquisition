@@ -98,7 +98,7 @@ def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=102
     frequencies = peak_indices * bin_width
     return peak_indices, frequencies
 
-def optimal_decimation(list_frequencies):
+def plotting_waterfall(num_samples):
     pass
 
 class ScannerApp(QtWidgets.QMainWindow):
@@ -189,7 +189,7 @@ class ScannerApp(QtWidgets.QMainWindow):
                     if peak_psd >= radio_psd_threshold:  # Check if the PSD value is above the radio station threshold
                         
                         print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
-                        current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6)}
+                        current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6),"array":psd}
                         #addition=find_relative_frequency(current_station,radio_stations[-1])
                        #print(addition)
                         radio_stations.append(current_station)
@@ -209,6 +209,13 @@ class ScannerApp(QtWidgets.QMainWindow):
 
         for station in radio_stations:
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
+
+        #-------------CODIGO PARA PLOTER EL PSD DE LAS FRECUENCIAS ENCONTRADAS--------------#
+        plt.psd(radio_stations[5]["array"], NFFT=1024, Fs=sdr.sample_rate/1e6, Fc=radio_stations[0]['freq']/1e6)
+        plt.xlabel('Frequency (MHz)')
+        plt.ylabel('Relative power (dB)')
+        plt.show()
+                    
 
 
     @staticmethod
