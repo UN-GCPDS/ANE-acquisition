@@ -11,6 +11,7 @@ from rtlsdr import RtlSdr
 from scipy import signal as sig
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
+from water_fall_class import Waterfall
 
 #*** THIS IS MORE COMPLICATED THAN IT SOUNDS
 #Need to get the harmonics to work to spot frequencies that are interfering it seems like PSD does not do it justice. We need to scan it for: Frequency of wave (to get the harmonics), the strength of the signal, and the band of the signal *** THIS IS MORE COMPLICATED THAN IT SOUNDS
@@ -42,23 +43,7 @@ time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 millisecond
 #this is good at finding FM radio stations... but AM radio stations are going to be a challange because bad antenna... but in theory if connection is good and no interference
 #it should work well for AM signals... I wonder if I can create an app that will be able to tell what devices are interfering based on the frequency of the signal
 
-def detect_harmonics(radio_stations, harmonic_threshold=3, max_harmonic=10, shape_margin=1e3, bin_width=1e3):
-    harmonic_candidates = []
-    for station in radio_stations:
-        freq = station['freq']
-        psd = station['psd']
-        harmonics = [freq * (i + 1) for i in range(1, max_harmonic + 1)]
-        strong_harmonics = 0
-        for harmonic in harmonics:
-            for candidate in radio_stations:
-                if abs(candidate['freq'] - harmonic) < shape_margin:
-                    if check_psd_shape(candidate, radio_stations, bin_width):
-                        strong_harmonics += 1
-                    break
-        if strong_harmonics >= harmonic_threshold:
-            harmonic_candidates.append({'freq': freq, 'harmonics': strong_harmonics})
 
-    return harmonic_candidates
 
 def find_relative_frequency(radio):
     try:
@@ -209,13 +194,7 @@ class ScannerApp(QtWidgets.QMainWindow):
 
         for station in radio_stations:
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
-
-        #-------------CODIGO PARA PLOTER EL PSD DE LAS FRECUENCIAS ENCONTRADAS--------------#
-        plt.psd(radio_stations[5]["array"], NFFT=1024, Fs=sdr.sample_rate/1e6, Fc=radio_stations[0]['freq']/1e6)
-        plt.xlabel('Frequency (MHz)')
-        plt.ylabel('Relative power (dB)')
-        plt.show()
-                    
+        return radio_stations
 
 
     @staticmethod
