@@ -14,8 +14,6 @@ from rtlsdr import RtlSdr
 NFFT = 1024*4
 NUM_SAMPLES_PER_SCAN = NFFT*16
 NUM_BUFFERED_SWEEPS = 100
-
-
 NUM_SCANS_PER_SWEEP = 1
 
 
@@ -49,18 +47,12 @@ class Waterfall(object):
         self.fig.canvas.draw_idle()
 
     def update(self, *args):
-        # save center freq. since we're gonna be changing it
-        start_fc = self.sdr.fc
 
-        # prepare space in buffer
-        # TODO: use indexing to avoid recreating buffer each time
         self.image_buffer = np.roll(self.image_buffer, 1, axis=0)
         self.update_count+=1
 
         if self.update_count<=100:
             for scan_num, start_ind in enumerate(range(0, NUM_SCANS_PER_SWEEP*NFFT, NFFT)):
-                self.sdr.fc += self.sdr.rs*scan_num
-
                 # estimate PSD for one scan
                 samples = self.sdr.read_samples(NUM_SAMPLES_PER_SCAN)
                 
@@ -71,39 +63,31 @@ class Waterfall(object):
             # plot entire sweep
             self.image.set_array(self.image_buffer)
 
-            # restore original center freq.
-            self.sdr.fc = start_fc
-            plt.show()
-            # plt.plot(self.image)
             return self.image,
-        else:
-            print("Done")
+        else: 
+            self.fig.savefig(f'./{self.sdr.fc}frecuencia.png')
+
 
     def start(self):
         self.update_plot_labels()
-        if sys.platform == 'darwin':
 
-            blit = False
-        else:
-            blit = True
-
+        
         ani = animation.FuncAnimation(self.fig, self.update, interval=10**-2,
-                blit=blit,repeat=False)
-            # self.update()
+                blit=True)
+        # ani=ani.save('./test.gif', writer='imagemagick')
+        # fig.savefig('./test.png') 
+
 
         pyl.show()
         return
     
-
 def main():
     sdr = RtlSdr()
     wf = Waterfall(sdr)
 
     # some defaults
     sdr.rs = 2.4e6
-    sdr.fc = 92e6
-    sdr.gain = 10
-
+    sdr.fc = 90.7e6
     wf.start()
 
     # cleanup
