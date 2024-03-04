@@ -1,6 +1,7 @@
 import sys
 import time
 import argparse
+import pandas as pd
 import numpy as np
 import os
 import json
@@ -41,6 +42,51 @@ time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 millisecond
 
 #this is good at finding FM radio stations... but AM radio stations are going to be a challange because bad antenna... but in theory if connection is good and no interference
 #it should work well for AM signals... I wonder if I can create an app that will be able to tell what devices are interfering based on the frequency of the signal
+
+def station_verification(radio, city):
+    """
+    Verifies the presence of radio stations in a database for a specific city by comparing
+    given frequencies in Hertz against those registered in the FM band.
+
+    Parameters:
+    - radio (list of int): List of radio frequencies in Hertz to verify.
+    - city (str): Name of the city where the radio stations are to be verified.
+
+    Returns:
+    - tuple of (np.ndarray, np.ndarray): 
+        - The first element is a NumPy array containing the frequencies (in MHz) of the radio stations
+          that are not registered in the database.
+        - The second element is a NumPy array containing the frequencies (in MHz) of the radio stations
+          that are registered in the database.
+
+    Example usage:
+    >>> radio_frequencies = [94000000, 101300000, 102500000]
+    >>> city_name = 'BOGOTA'
+    >>> not_registered, registered = station_verification(radio_frequencies, city_name)
+    >>> print(f'Not registered: {not_registered}, Registered: {registered}')
+
+    Notes:
+    - The function assumes that the CSV file contains 'CIUDAD', 'BANDA', and 'FRECUENCIA' columns
+      relevant for the operation.
+    - Frequencies in the CSV file should be in MHz and end with ' MHz' to be processed correctly.
+    """
+    df = pd.read_csv("C:\\Users\\ASUS\\Documents\\GitHub\\ANE\\channels-534_radioemisoras.csv")
+    df = df[(df['CIUDAD'] == city) & (df['BANDA'] == 'FM')]
+    df['FRECUENCIA'] = df['FRECUENCIA'].str.replace(' MHz', '').astype(float)
+    df = df[['FRECUENCIA']]
+    df_array = df.values
+    df_array = df_array.flatten()
+
+    radio = np.array(radio)
+    freq_array = radio / 1e6
+
+    not_registered_stations = np.setdiff1d(freq_array, df_array)
+    registered_stations = np.intersect1d(freq_array, df_array)
+
+    print(f'Las emisoras que no están en la base de datos son: {not_registered_stations}\n' 
+          f'y las emisoras que si están son: {registered_stations}')
+    
+    return not_registered_stations, registered_stations
 
 def detect_harmonics(radio_stations, harmonic_threshold=3, max_harmonic=10, shape_margin=1e3, bin_width=1e3):
     harmonic_candidates = []
@@ -117,10 +163,10 @@ class ScannerApp(QtWidgets.QMainWindow):
 
         grid = QtWidgets.QGridLayout(central_widget)
 
-        labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step']
+        labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step', 'City']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.4', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000'}
+        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.4', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000', 'city': 'MANIZALES'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -152,6 +198,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             start=int(self.inputs['start'].text()),
             stop=int(self.inputs['stop'].text()),
             step=int(self.inputs['step'].text()),
+            city=str(self.inputs['city'].text()),
         )
         
     def scan(self, args):
@@ -159,11 +206,12 @@ class ScannerApp(QtWidgets.QMainWindow):
         sdr.sample_rate = sample_rate = 2400000
         sdr.err_ppm = args.ppm
         sdr.gain = args.gain
-
+        sdr.city = args.city
         lo_frequency = args.lo
 
         freq = args.start
         radio_stations = []
+        radio = []
         last_detected_station = None
         min_distance = 200000  # Minimum distance between stations in Hz
         
@@ -209,6 +257,12 @@ class ScannerApp(QtWidgets.QMainWindow):
 
         for station in radio_stations:
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
+            radio.append(station['freq'])
+
+        station_verification(radio, args.city)
+        return radio_stations
+    
+   
 
 
     @staticmethod
