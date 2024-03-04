@@ -43,14 +43,16 @@ time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 millisecond
 #this is good at finding FM radio stations... but AM radio stations are going to be a challange because bad antenna... but in theory if connection is good and no interference
 #it should work well for AM signals... I wonder if I can create an app that will be able to tell what devices are interfering based on the frequency of the signal
 
-def station_verification(radio, city):
+def station_verification(radio, city, file_path):
     """
     Verifies the presence of radio stations in a database for a specific city by comparing
-    given frequencies in Hertz against those registered in the FM band.
+    given frequencies in Hertz against those registered in the FM band. This function now
+    dynamically reads from a specified CSV file path to obtain the database of radio stations.
 
     Parameters:
     - radio (list of int): List of radio frequencies in Hertz to verify.
     - city (str): Name of the city where the radio stations are to be verified.
+    - file_path (str): The file path to the CSV file containing the radio station database.
 
     Returns:
     - tuple of (np.ndarray, np.ndarray): 
@@ -62,7 +64,8 @@ def station_verification(radio, city):
     Example usage:
     >>> radio_frequencies = [94000000, 101300000, 102500000]
     >>> city_name = 'BOGOTA'
-    >>> not_registered, registered = station_verification(radio_frequencies, city_name)
+    >>> file_path = 'path/to/radio_station_database.csv'
+    >>> not_registered, registered = station_verification(radio_frequencies, city_name, file_path)
     >>> print(f'Not registered: {not_registered}, Registered: {registered}')
 
     Notes:
@@ -70,7 +73,7 @@ def station_verification(radio, city):
       relevant for the operation.
     - Frequencies in the CSV file should be in MHz and end with ' MHz' to be processed correctly.
     """
-    df = pd.read_csv("C:\\Users\\ASUS\\Documents\\GitHub\\ANE\\channels-534_radioemisoras.csv")
+    df = pd.read_csv(file_path)
     df = df[(df['CIUDAD'] == city) & (df['BANDA'] == 'FM')]
     df['FRECUENCIA'] = df['FRECUENCIA'].str.replace(' MHz', '').astype(float)
     df = df[['FRECUENCIA']]
@@ -259,7 +262,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
             radio.append(station['freq'])
 
-        station_verification(radio, args.city)
+        station_verification(radio, args.city, "C:\\Users\\ASUS\\Documents\\GitHub\\ANE\\channels-534_radioemisoras.csv")
         return radio_stations
     
    
