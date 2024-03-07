@@ -12,6 +12,7 @@ from scipy import signal as sig
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
 from water_fall_class import Waterfall
+import threading
 
 #*** THIS IS MORE COMPLICATED THAN IT SOUNDS
 #Need to get the harmonics to work to spot frequencies that are interfering it seems like PSD does not do it justice. We need to scan it for: Frequency of wave (to get the harmonics), the strength of the signal, and the band of the signal *** THIS IS MORE COMPLICATED THAN IT SOUNDS
@@ -46,6 +47,7 @@ time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 millisecond
 
 
 def find_relative_frequency(radio):
+    '''Esta funcion permite escoger las frecuencias en las cuales el psd es mayor y filtrar frecuencias muy cercanas con psd menores'''
     try:
         current=radio[-1]
         last=radio[-2]
@@ -105,7 +107,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.4', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000'}
+        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.5', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -126,7 +128,7 @@ class ScannerApp(QtWidgets.QMainWindow):
     @pyqtSlot()
     def start_scan(self):
         args = self.get_args()
-        self.scan(args)
+        lista_frecuencias=self.scan(args)
 
     def get_args(self):
         return argparse.Namespace(
@@ -138,23 +140,11 @@ class ScannerApp(QtWidgets.QMainWindow):
             stop=int(self.inputs['stop'].text()),
             step=int(self.inputs['step'].text()),
         )
-        
-    def scan(self, args):
-        sdr = RtlSdr()
-        sdr.sample_rate = sample_rate = 2400000
-        sdr.err_ppm = args.ppm
-        sdr.gain = args.gain
+    def psd_scanning(self,sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,threshold):
+        '''Esta funcion obtiene el psd de una señal entre dos rangos especificos '''
 
-        lo_frequency = args.lo
-
-        freq = args.start
         radio_stations = []
-        last_detected_station = None
-        min_distance = 200000  # Minimum distance between stations in Hz
-        
-        #Se tiene que variar el treshold de acuerdo a las potencia de la señal y la ubicacion en la cual estan
-        radio_psd_threshold = 2.5e-07
-        while freq <= args.stop:
+        for i in range(freq,freq_stop,freq_step):
             print(f"Scanning frequency: {freq / 1e6} MHz")
             tune_to_frequency(sdr, freq, lo_frequency)
             iq_samples = self.read_samples(sdr, freq)
@@ -182,20 +172,42 @@ class ScannerApp(QtWidgets.QMainWindow):
                         last_detected_station = radio_stations[-1]
                         print(last_detected_station)
 
-                    if peak_psd >= args.threshold:
+                    if peak_psd >= threshold:
                         self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
 
 
-            freq += args.step
+            freq += freq_step
 
-        sdr.close()
-
-        print("\nDetected radio stations:")
-
-        for station in radio_stations:
-            print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
         return radio_stations
 
+        
+    def scan(self, args):
+        sdr = RtlSdr()
+        sdr.sample_rate = sample_rate = 2400000
+        sdr.err_ppm = args.ppm
+        sdr.gain = args.gain
+
+        lo_frequency = args.lo
+
+        freq = args.start
+        last_detected_station = None
+        min_distance = 200000  # Minimum distance between stations in Hz
+        
+        #Se tiene que variar el treshold de acuerdo a las potencia de la señal y la ubicacion en la cual estan
+        radio_psd_threshold = 2.5e-07
+        freq_stop=args.stop
+        freq_step=args.step
+        radio_stations=self.psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args.threshold)
+        print("\nDetected radio stations:")
+        sdr.close()
+        wf = Waterfall()
+        for station in radio_stations:
+            print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
+            sdr.fc = station["freq"]
+            wf.showing_current_station()
+
+            sdr.close()
+        return radio_stations
 
     @staticmethod
     def read_samples(sdr, freq):

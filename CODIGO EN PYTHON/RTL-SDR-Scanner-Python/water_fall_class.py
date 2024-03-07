@@ -4,30 +4,33 @@ from __future__ import division
 import matplotlib.animation as animation
 from matplotlib.mlab import psd
 import  matplotlib.pyplot as plt
-import pylab as pyl
+# import pylab as pyl
 import numpy as np
 import sys
 from rtlsdr import RtlSdr
+import time
+'''
+Estas son las variables iniciales
+
+NFFT -->Numero de Muestras
+NUM_SAMPLES_PER_SCAN -->Numero de Muestras por escaneo 
 
 
-
-NFFT = 1024*4
+'''
+NFFT = 1024*8
 NUM_SAMPLES_PER_SCAN = NFFT*16
-NUM_BUFFERED_SWEEPS = 100
-NUM_SCANS_PER_SWEEP = 1
+NUM_BUFFERED_SWEEPS = 10
+
 
 
 class Waterfall(object):
-    keyboard_buffer = []
-    shift_key_down = False
-    image_buffer = -100*np.ones((NUM_BUFFERED_SWEEPS,\
-                                 NUM_SCANS_PER_SWEEP*NFFT))
+    #Creamos el plano en el cual plotearemos el waterfall
+    image_buffer = -100*np.ones((NUM_BUFFERED_SWEEPS,NFFT))
+
 
     def __init__(self, sdr=None, fig=None):
-        self.fig = fig if fig else pyl.figure()
+        self.fig = fig if fig else plt.figure()
         self.sdr = sdr if sdr else RtlSdr()
-        self.update_count=0
-
         self.init_plot()
 
     def init_plot(self):
@@ -40,55 +43,40 @@ class Waterfall(object):
     def update_plot_labels(self):
         fc = self.sdr.fc
         rs = self.sdr.rs
-        freq_range = (fc - rs/2)/1e6, (fc + rs*(NUM_SCANS_PER_SWEEP - 0.5))/1e6
+        freq_range = (fc - rs/2)/1e6, (fc + rs*(1 - 0.5))/1e6
 
 
         self.image.set_extent(freq_range + (0, 1))
         self.fig.canvas.draw_idle()
 
-    def update(self, *args):
 
-        self.image_buffer = np.roll(self.image_buffer, 1, axis=0)
-        self.update_count+=1
 
-        if self.update_count<=100:
-            for scan_num, start_ind in enumerate(range(0, NUM_SCANS_PER_SWEEP*NFFT, NFFT)):
-                # estimate PSD for one scan
-                samples = self.sdr.read_samples(NUM_SAMPLES_PER_SCAN)
-                
-                psd_scan, f = psd(samples, NFFT=NFFT)
 
-                self.image_buffer[0, start_ind: start_ind+NFFT] = 10*np.log10(psd_scan)
+    def showing_current_station(self):
+        self.update_plot_labels()
+        tiempo= time.time()
+        for frame in range(self.image_buffer.shape[0]):
+            self.image_buffer = np.roll(self.image_buffer, 1, axis=0)
+            samples = self.sdr.read_samples(NUM_SAMPLES_PER_SCAN)
+                    
+            psd_scan, f = psd(samples, NFFT=NFFT)
 
-            # plot entire sweep
+            self.image_buffer[0,0:NFFT] = 10*np.log10(psd_scan)
+
+                # plot entire sweep
             self.image.set_array(self.image_buffer)
 
-            return self.image,
-        else: 
-            self.fig.savefig(f'./{self.sdr.fc}frecuencia.png')
-
-
-    def start(self):
-        self.update_plot_labels()
-
-        
-        ani = animation.FuncAnimation(self.fig, self.update, interval=10**-2,
-                blit=True)
-        # ani=ani.save('./test.gif', writer='imagemagick')
-        # fig.savefig('./test.png') 
-
-
-        pyl.show()
-        return
+        print(f"tiempo que se demora el codigo {time.time()-tiempo}")
+        plt.title(f"Espectrograma en la frecuencia {self.sdr.fc/1e6}")
+        plt.savefig(f'my_plot{self.sdr.fc/1e6}.png')
+        plt.show()
+        return self.image
     
 def main():
     sdr = RtlSdr()
     wf = Waterfall(sdr)
 
-    # some defaults
-    sdr.rs = 2.4e6
-    sdr.fc = 90.7e6
-    wf.start()
+    wf.showing_current_station()
 
     # cleanup
     sdr.close()
