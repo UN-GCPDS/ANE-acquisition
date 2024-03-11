@@ -12,6 +12,7 @@ from rtlsdr import RtlSdr
 from scipy import signal as sig
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
+import time
 
 #*** THIS IS MORE COMPLICATED THAN IT SOUNDS
 #Need to get the harmonics to work to spot frequencies that are interfering it seems like PSD does not do it justice. We need to scan it for: Frequency of wave (to get the harmonics), the strength of the signal, and the band of the signal *** THIS IS MORE COMPLICATED THAN IT SOUNDS
@@ -43,7 +44,7 @@ time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 millisecond
 #this is good at finding FM radio stations... but AM radio stations are going to be a challange because bad antenna... but in theory if connection is good and no interference
 #it should work well for AM signals... I wonder if I can create an app that will be able to tell what devices are interfering based on the frequency of the signal
 
-def station_verification(radio, city, file_path):
+def station_verification(radio, state, file_path):
     """
     Verifies the presence of radio stations in a database for a specific city by comparing
     given frequencies in Hertz against those registered in the FM band. This function now
@@ -55,7 +56,7 @@ def station_verification(radio, city, file_path):
     - file_path (str): The file path to the CSV file containing the radio station database.
 
     Returns:
-    - tuple of (np.ndarray, np.ndarray): 
+    - tuple of (np.ndarray, np.ndarray):
         - The first element is a NumPy array containing the frequencies (in MHz) of the radio stations
           that are not registered in the database.
         - The second element is a NumPy array containing the frequencies (in MHz) of the radio stations
@@ -73,8 +74,8 @@ def station_verification(radio, city, file_path):
       relevant for the operation.
     - Frequencies in the CSV file should be in MHz and end with ' MHz' to be processed correctly.
     """
-    df = pd.read_csv(file_path)
-    df = df[(df['CIUDAD'] == city) & (df['BANDA'] == 'FM')]
+    df = pd.read_csv(file_path, delimiter=';', on_bad_lines='warn')
+    df = df[(df['DEPARTAMENTO'] == state) & (df['BANDA'] == 'FM')]
     df['FRECUENCIA'] = df['FRECUENCIA'].str.replace(' MHz', '').astype(float)
     df = df[['FRECUENCIA']]
     df_array = df.values
@@ -86,9 +87,9 @@ def station_verification(radio, city, file_path):
     not_registered_stations = np.setdiff1d(freq_array, df_array)
     registered_stations = np.intersect1d(freq_array, df_array)
 
-    print(f'Las emisoras que no están en la base de datos son: {not_registered_stations}\n' 
+    print(f'Las emisoras que no están en la base de datos son: {not_registered_stations}\n'
           f'y las emisoras que si están son: {registered_stations}')
-    
+
     return not_registered_stations, registered_stations
 
 def detect_harmonics(radio_stations, harmonic_threshold=3, max_harmonic=10, shape_margin=1e3, bin_width=1e3):
@@ -169,7 +170,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step', 'City']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.4', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000', 'city': 'MANIZALES'}
+        default_values = {'ppm': '5', 'gain': '25', 'threshold': '0.4', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000', 'city': 'CALDAS'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -203,7 +204,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             step=int(self.inputs['step'].text()),
             city=str(self.inputs['city'].text()),
         )
-        
+
     def scan(self, args):
         sdr = RtlSdr()
         sdr.sample_rate = sample_rate = 2400000
@@ -217,9 +218,10 @@ class ScannerApp(QtWidgets.QMainWindow):
         radio = []
         last_detected_station = None
         min_distance = 200000  # Minimum distance between stations in Hz
-        
+
         #Se tiene que variar el treshold de acuerdo a las potencia de la señal y la ubicacion en la cual estan
         radio_psd_threshold = 2.5e-07
+        start=time.time()
         while freq <= args.stop:
             print(f"Scanning frequency: {freq / 1e6} MHz")
             tune_to_frequency(sdr, freq, lo_frequency)
@@ -238,7 +240,7 @@ class ScannerApp(QtWidgets.QMainWindow):
 
                     # Group nearby frequencies as one station
                     if peak_psd >= radio_psd_threshold:  # Check if the PSD value is above the radio station threshold
-                        
+
                         print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
                         current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6)}
                         #addition=find_relative_frequency(current_station,radio_stations[-1])
@@ -257,15 +259,15 @@ class ScannerApp(QtWidgets.QMainWindow):
         sdr.close()
 
         print("\nDetected radio stations:")
-
+        print(f"el tiempo que se demora es {time.time()-start}")
         for station in radio_stations:
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
             radio.append(station['freq'])
 
         station_verification(radio, args.city, "C:\\Users\\ASUS\\Documents\\GitHub\\ANE\\channels-534_radioemisoras.csv")
         return radio_stations
-    
-   
+
+
 
 
     @staticmethod
