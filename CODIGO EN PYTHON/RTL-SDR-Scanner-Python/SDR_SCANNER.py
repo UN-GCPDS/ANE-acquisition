@@ -85,9 +85,6 @@ def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=102
     frequencies = peak_indices * bin_width
     return peak_indices, frequencies
 
-def plotting_waterfall(num_samples):
-    pass
-
 class ScannerApp(QtWidgets.QMainWindow):
     def __init__(self):
         super(ScannerApp, self).__init__()
@@ -197,7 +194,9 @@ class ScannerApp(QtWidgets.QMainWindow):
         radio_psd_threshold = 2.5e-07
         freq_stop=args.stop
         freq_step=args.step
+        start=time.time()
         radio_stations=self.psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args.threshold)
+        print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
         print("\nDetected radio stations:")
         sdr.close()
         wf = Waterfall()
