@@ -52,7 +52,7 @@ def station_verification(radio, state, file_path):
 
     Parameters:
     - radio (list of int): List of radio frequencies in Hertz to verify.
-    - city (str): Name of the city where the radio stations are to be verified.
+    - state (str): Name of the state where the radio stations are to be verified.
     - file_path (str): The file path to the CSV file containing the radio station database.
 
     Returns:
@@ -64,7 +64,7 @@ def station_verification(radio, state, file_path):
 
     Example usage:
     >>> radio_frequencies = [94000000, 101300000, 102500000]
-    >>> city_name = 'BOGOTA'
+    >>> state_name = 'CALDAS'
     >>> file_path = 'path/to/radio_station_database.csv'
     >>> not_registered, registered = station_verification(radio_frequencies, city_name, file_path)
     >>> print(f'Not registered: {not_registered}, Registered: {registered}')
@@ -226,7 +226,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             print(f"Scanning frequency: {freq / 1e6} MHz")
             tune_to_frequency(sdr, freq, lo_frequency)
             iq_samples = self.read_samples(sdr, freq)
-            iq_samples = sig.decimate(iq_samples, 24)
+            iq_samples = sig.decimate(iq_samples, 24)   
 
             f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
 
