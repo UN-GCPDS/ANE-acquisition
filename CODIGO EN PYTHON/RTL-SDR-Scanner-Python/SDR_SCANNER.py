@@ -47,12 +47,21 @@ time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 millisecond
 
 
 def find_relative_frequency(radio):
-    '''Esta funcion permite escoger las frecuencias en las cuales el psd es mayor y filtrar frecuencias muy cercanas con psd menores'''
+
+    '''
+    Esta funcion permite seleccionar las frecuencias en las cuales el psd es mayor
+    y filtrar frecuencias muy cercanas con psd menores
+    
+    Arguments:
+        radio -- Lista compuesta de  diccionarios el cual contiene informacion sobre cada frecuencia ['freq':, 'psd': , 'band': ,"array":]
+
+    Returns:
+        radio -- Lista compuesta de diccionarios posterior al filtrado ['freq':, 'psd': , 'band': ,"array":]
+    '''
     try:
         current=radio[-1]
         last=radio[-2]
         diff_freq=abs(float(current["freq"])-float(last["freq"]))
-        print(diff_freq)
         diff_psd=float(current["psd"])-float(last["psd"])
         print(current["psd"],last["psd"],diff_psd)
         if diff_freq == 1e5:
@@ -69,12 +78,20 @@ def find_relative_frequency(radio):
         return radio
 
 def tune_to_frequency(radio, true_frequency, lo_frequency):
+    '''
+    Sintoniza la frecuencia agregando un offset
+
+    '''
     shifted_frequency = true_frequency + lo_frequency
     radio.center_freq = shifted_frequency
     print(f"Tuned to {true_frequency / 1e6} MHz (shifted to {shifted_frequency / 1e6} MHz)")
 
 
 def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=1024):
+    '''
+    Sintoniza la frecuencia agregando un offset
+    
+    '''
     if len(data) < num_peaks:
         print("Not enough data points to find the desired number of peaks.")
         return [], []
@@ -84,6 +101,7 @@ def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=102
     bin_width = sample_rate / fft_size
     frequencies = peak_indices * bin_width
     return peak_indices, frequencies
+
 
 class ScannerApp(QtWidgets.QMainWindow):
     def __init__(self):
@@ -126,7 +144,7 @@ class ScannerApp(QtWidgets.QMainWindow):
     def start_scan(self):
         args = self.get_args()
         lista_frecuencias=self.scan(args)
-
+    
     def get_args(self):
         return argparse.Namespace(
             ppm=int(self.inputs['ppm'].text()),
@@ -171,8 +189,6 @@ class ScannerApp(QtWidgets.QMainWindow):
 
                     if peak_psd >= threshold:
                         self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
-
-
             freq += freq_step
 
         return radio_stations

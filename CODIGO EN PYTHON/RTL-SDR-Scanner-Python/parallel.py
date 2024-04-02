@@ -1,57 +1,18 @@
-# from multiprocessing import Process
-# import time
-# import threading
-# import ray 
+#Christopher M. Church
+#PhD Candidate, UC Berkeley, History
+#Social Science D-Lab, UC Berkeley
 
-# @ray.remote
-# def x(x):
-#     count=0
-#     for c in range(5):
-#         count+=1
-#     return count
-# @ray.remote  
-# def y(n):
-#     count=0
-#     for c in range(5):
-#         count-=1
-#         print(count)
-#     return count
+import multiprocessing #import multiprocessing library
+import time 
+def worker(num):
+    '''this is the process that will be created in the pool'''
+    return num*2 #multiply the current number by two
 
-# if __name__ == "__main__":
-#     start=time.time()
-#     ret_id1 = x.remote("X")
-#     ret_id2 = y.remote("X")
-#     ret1, ret2 = ray.get([ret_id1, ret_id2])
-#     print(ret1,ret2)
-#     print(f"tiempo finalizado {time.time()-start}")
-# # if __name__ == '__main__':
-# #     p1 = Process(target=x, args=('bob',))
-# #     p2 = Process(target=y, args=('bob',))
-# #     start=time.time()
-# #     p1.start()
-# #     p2.start()
-# #     p1.join()
-# #     p2.join()
-# #     print(f"tiempo finalizado {time.time()-start}")
-import multiprocessing
-import time
-import datetime
-
-def yourfunction(x):
-    return x*3
-# if __name__ == '__main__':
-#     start=time.time()
-#     data=[]
-#     list=[x for x in range(20000)]
-#     for x in list:
-#         data.append(yourfunction(x))
-#     for row in data:
-#         print(row)
-#     print(f"El tiempo que se demora el codigo es {time.time()-start}")
-if __name__ == '__main__':
+if __name__ == '__main__': #this is needed to insert the process on Windows -- not needed in Linux
     start=time.time()
-    with multiprocessing.Pool(processes=4) as pool:
-        data = pool.map(yourfunction, [[x for x in range(10000)],[y for y in range(10000,20000)]])
-    for row in data:
-        print(row)
-    print(f"El tiempo que se demora el codigo es {time.time()-start}")
+    nums = [x for x in range(1000)] #our list to iterate over and multiple each value by 2
+    p = multiprocessing.Pool(4) #create a processor pool of 2
+    values = p.map(func=worker,iterable=nums) #send the numbers into the process pool
+    p.close() #close the process pool
+    print(f"El tiempo el cual {time.time() }")
+    print (values) #print out the new values
