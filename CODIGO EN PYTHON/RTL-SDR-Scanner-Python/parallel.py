@@ -1,18 +1,36 @@
-#Christopher M. Church
-#PhD Candidate, UC Berkeley, History
-#Social Science D-Lab, UC Berkeley
+## import dependencies
+from time import sleep,time
+import dask
+from dask import delayed
+## calculate square of a number
 
-import multiprocessing #import multiprocessing library
-import time 
-def worker(num):
-    '''this is the process that will be created in the pool'''
-    return num*2 #multiply the current number by two
+def calculate_square(x):
+    count=0
+    for x in x:
+        sleep(0.1)
+        count+= x**2
+    return count
 
-if __name__ == '__main__': #this is needed to insert the process on Windows -- not needed in Linux
-    start=time.time()
-    nums = [x for x in range(1000)] #our list to iterate over and multiple each value by 2
-    p = multiprocessing.Pool(4) #create a processor pool of 2
-    values = p.map(func=worker,iterable=nums) #send the numbers into the process pool
-    p.close() #close the process pool
-    print(f"El tiempo el cual {time.time() }")
-    print (values) #print out the new values
+## calculate sum of two numbers
+def get_sum(a,b):
+    sleep(1)
+    return a+b
+
+#---------NORMAL COMPUTING-----------------#
+start=time()
+## calculate square of first number
+x = calculate_square([x for x in range(100)])
+
+## calculate square of second number
+y = calculate_square([x for x in range(100)])
+
+## calculate sum of two numbers
+z = get_sum(x,y)
+print(z,time()-start)
+
+# #-----------USING DASH------------------#
+start=time()
+x = delayed(calculate_square)([x for x in range(1000)])
+y = delayed(calculate_square)([x for x in range(1000)])
+z = delayed(get_sum)(x, y)
+print(z.compute(),time()-start)

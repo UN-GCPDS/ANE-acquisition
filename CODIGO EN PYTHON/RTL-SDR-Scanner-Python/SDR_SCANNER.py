@@ -12,51 +12,33 @@ from scipy import signal as sig
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
 from water_fall_class import Waterfall
+import multiprocessing
 import threading
 
-#*** THIS IS MORE COMPLICATED THAN IT SOUNDS
-#Need to get the harmonics to work to spot frequencies that are interfering it seems like PSD does not do it justice. We need to scan it for: Frequency of wave (to get the harmonics), the strength of the signal, and the band of the signal *** THIS IS MORE COMPLICATED THAN IT SOUNDS
 
-# Guidelines for choosing the number of samples to read from the RTL-SDR device
+'''
+num_samples = Number of samples to read from the RTL-SDR device 
+sample_rate = Rate which is reading a sample 
+time_duration = This is the time duration of the captured signal is determined by the number of samples and the sample rate , is calculated by num_samples / sample_rate
 
-# 1. Choose a power of 2:
-# This is important for efficient processing, especially when using Fast Fourier Transform (FFT) algorithms.
-# Common choices include 131072 (2^17), 262144 (2^18), 524288 (2^19), and 1048576 (2^20).
-#
-# Example:
-# num_samples = 131072
-
-# 2. Consider the time resolution:
-# The time duration of the captured signal is determined by the number of samples and the sample rate.
-# For example, if you choose 131072 samples and have a sample rate of 2.4 MS/s (2,400,000 samples per second),
-# the time duration of the captured data would be 131072 / 2,400,000 = 0.0547 seconds.
-# This means that the data you're processing represents a signal captured over 54.7 milliseconds.
-#
-# Equation:
-# time_duration = num_samples / sample_rate
-
-# Example:
+'''
 num_samples = 131072
-sample_rate = 2.4e6  # 2.4 MS/s
-time_duration = num_samples / sample_rate  # 0.0547 seconds, or 54.7 milliseconds
-
-
-#this is good at finding FM radio stations... but AM radio stations are going to be a challange because bad antenna... but in theory if connection is good and no interference
-#it should work well for AM signals... I wonder if I can create an app that will be able to tell what devices are interfering based on the frequency of the signal
-
-
+sample_rate = 2.4e6  
+time_duration = num_samples / sample_rate 
 
 def find_relative_frequency(radio):
-
     '''
-    Esta funcion permite seleccionar las frecuencias en las cuales el psd es mayor
-    y filtrar frecuencias muy cercanas con psd menores
-    
-    Arguments:
-        radio -- Lista compuesta de  diccionarios el cual contiene informacion sobre cada frecuencia ['freq':, 'psd': , 'band': ,"array":]
+    Selects frequencies where the Power Spectral Density (PSD) is higher 
+    and filters out closely spaced frequencies with lower PSD.
+
+    Argument:
+        radio -- (list of dicts): A list of dictionaries, each containing information about a frequency.
+                               Each dictionary has the keys 'freq' (frequency), 'psd' (Power Spectral Density),
+                               'band' (frequency band), and 'array'.
 
     Returns:
-        radio -- Lista compuesta de diccionarios posterior al filtrado ['freq':, 'psd': , 'band': ,"array":]
+        radio --(list of dicts): The filtered list of dictionaries, 
+                                where each dictionary contains information about a frequency that has passed the filtering criteria.
     '''
     try:
         current=radio[-1]
@@ -78,10 +60,21 @@ def find_relative_frequency(radio):
         return radio
 
 def tune_to_frequency(radio, true_frequency, lo_frequency):
-    '''
-    Sintoniza la frecuencia agregando un offset
+    """
+    Tunes the SDR frequency by adding an offset to the true frequency
 
-    '''
+    Argument:
+        radio --(list of dicts): A list of dictionaries, each containing information about a frequency.
+                               Each dictionary has the keys 'freq' (frequency), 'psd' (Power Spectral Density),
+                               'band' (frequency band), and 'array', providing details of each frequency.
+
+        true_frequency --(int): The actual frequency to be tuned.
+
+        lo_frequency --(int): The offset frequency to be added to the true frequency.
+
+    Returns:
+        None: This function adjusts the frequency in-place within the 'radio' list; it does not return anything.
+    """
     shifted_frequency = true_frequency + lo_frequency
     radio.center_freq = shifted_frequency
     print(f"Tuned to {true_frequency / 1e6} MHz (shifted to {shifted_frequency / 1e6} MHz)")
@@ -89,8 +82,19 @@ def tune_to_frequency(radio, true_frequency, lo_frequency):
 
 def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=1024):
     '''
-    Sintoniza la frecuencia agregando un offset
-    
+    Identifies the indices and frequencies of the highest magnitude peaks within a dataset,
+    typically from an FFT analysis.
+
+    Argument:
+        data --(array-like): The dataset to analyze.
+        num_peaks --(int): The number of highest peaks to identify. Defaults to 8.
+        sample_rate --(float, optional): The sample rate of the dataset. Defaults to 2.048e6.
+        fft_size --(int, optional): The FFT size used to generate the dataset. Defaults to 1024.
+
+    Returns:
+        peak_indice --(array): The indices of the peaks within the dataset and the corresponding frequencies.
+        frequencies --(array): Current frequency tuned
+
     '''
     if len(data) < num_peaks:
         print("Not enough data points to find the desired number of peaks.")
@@ -102,7 +106,41 @@ def find_highest_magnitudes(data, num_peaks=8, sample_rate=2.048e6, fft_size=102
     frequencies = peak_indices * bin_width
     return peak_indices, frequencies
 
+def station_verification(radio, state, file_path):
+    """
+    Verifies the presence of radio stations in a database for a specific city by comparing
+    given frequencies in Hertz against those registered in the FM band. This function now
+    dynamically reads from a specified CSV file path to obtain the database of radio stations.
 
+    Parameters:
+    - radio (list of int): List of radio frequencies in Hertz to verify.
+    - state (str): Name of the state where the radio stations are to be verified.
+    - file_path (str): The file path to the CSV file containing the radio station database.
+
+    Returns:
+    - tuple of (np.ndarray, np.ndarray):
+        - The first element is a NumPy array containing the frequencies (in MHz) of the radio stations
+          that are not registered in the database.
+        - The second element is a NumPy array containing the frequencies (in MHz) of the radio stations
+          that are registered in the database.
+    """
+    df = pd.read_csv(file_path, delimiter=';', on_bad_lines='warn')
+    df = df[(df['DEPARTAMENTO'] == state) & (df['BANDA'] == 'FM')]
+    df['FRECUENCIA'] = df['FRECUENCIA'].str.replace(' MHz', '').astype(float)
+    df = df[['FRECUENCIA']]
+    df_array = df.values
+    df_array = df_array.flatten()
+
+    radio = np.array(radio)
+    freq_array = radio / 1e6
+
+    not_registered_stations = np.setdiff1d(freq_array, df_array)
+    registered_stations = np.intersect1d(freq_array, df_array)
+
+    print(f'Las emisoras que no están en la base de datos son: {not_registered_stations}\n'
+          f'y las emisoras que si están son: {registered_stations}')
+
+    return not_registered_stations, registered_stations
 class ScannerApp(QtWidgets.QMainWindow):
     def __init__(self):
         super(ScannerApp, self).__init__()
@@ -122,7 +160,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.5', 'lnb lo': '-125000000', 'start': '87000000', 'stop': '108500000', 'step': '100000'}
+        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.5', 'lnb lo': '-125000000', 'start': '88000000', 'stop': '108000000', 'step': '100000'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -156,7 +194,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             step=int(self.inputs['step'].text()),
         )
     def psd_scanning(self,sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,threshold):
-        '''Esta funcion obtiene el psd de una señal entre dos rangos especificos '''
+        '''Este metodo realiza un escaneo  '''
 
         radio_stations = []
         for i in range(freq,freq_stop,freq_step):
@@ -168,7 +206,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
 
             peak_indices, frequencies = find_highest_magnitudes(psd, num_peaks=1, sample_rate=sample_rate / 24, fft_size=1024)
-
+            print(f"lasfrecuencias {frequencies}")
             if peak_indices:
                     peak_index = peak_indices[0]
                     peak_frequency = frequencies[0]
@@ -189,10 +227,42 @@ class ScannerApp(QtWidgets.QMainWindow):
 
                     if peak_psd >= threshold:
                         self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
-            freq += freq_step
+            # freq += freq_step
 
         return radio_stations
+    # def psd_parallel_scanner(self,sdr,freq,lo_frequency,radio_psd_threshold,threshold):
+    #     '''Este metodo realiza un escaneo  '''
+    #     print(f"Scanning frequency: {freq / 1e6} MHz")
+    #     tune_to_frequency(sdr, freq, lo_frequency)
+    #     iq_samples = self.read_samples(sdr, freq)
+    #     iq_samples = sig.decimate(iq_samples, 24)
 
+    #     f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
+
+    #     peak_indices, frequencies = find_highest_magnitudes(psd, num_peaks=1, sample_rate=sample_rate / 24, fft_size=1024)
+    #     print(f"lasfrecuencias {frequencies}")
+    #     if peak_indices:
+    #         peak_index = peak_indices[0]
+    #         peak_frequency = frequencies[0]
+    #         peak_psd = psd[peak_index]
+    #         print(f"Peak frequency: {peak_frequency} Hz, PSD: {peak_psd}")
+
+    #         # Group nearby frequencies as one station
+    #         if peak_psd >= radio_psd_threshold:  # Check if the PSD value is above the radio station threshold
+                        
+    #             print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
+    #             current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6),"array":psd}
+    #             #addition=find_relative_frequency(current_station,radio_stations[-1])
+    #             #print(addition)
+    #             radio_stations.append(current_station)
+    #             radio_stations=find_relative_frequency(radio_stations)
+    #             last_detected_station = radio_stations[-1]
+    #             print(last_detected_station)
+    #             if peak_psd >= threshold:
+    #                 self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
+    #         # freq += freq_step
+
+    #     return current_station
         
     def scan(self, args):
         sdr = RtlSdr()
@@ -210,8 +280,14 @@ class ScannerApp(QtWidgets.QMainWindow):
         radio_psd_threshold = 2.5e-07
         freq_stop=args.stop
         freq_step=args.step
+        list_frequencies=[freq+x*1e5 for x in range(int((freq_stop-freq)/1e5)+1)]
         start=time.time()
+        # pool = multiprocessing.Pool(3)
+        # radio_stations = pool.map(self.psd_parallel_scanner, args=(sdr,list_frequencies,lo_frequency,radio_psd_threshold,args.threshold))
+
+
         radio_stations=self.psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args.threshold)
+        print(radio_stations)
         print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
         print("\nDetected radio stations:")
         sdr.close()
