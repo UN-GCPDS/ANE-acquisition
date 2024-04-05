@@ -175,9 +175,9 @@ def main():
     wf = Waterfall(sdr)
 
     # some defaults
-    sdr.rs = 2.4e6
-    sdr.fc = 92e6
-    sdr.gain = 10
+    # sdr.rs = 2.4e6
+    # sdr.fc = 92e6
+    # sdr.gain = 10
 
     wf.start()
 

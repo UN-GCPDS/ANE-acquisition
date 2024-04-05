@@ -12,6 +12,7 @@ from scipy import signal as sig
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
 from water_fall_class import Waterfall
+from pathlib import Path
 import pandas as pd
 import multiprocessing
 import threading
@@ -143,6 +144,7 @@ def station_verification(radio, state, file_path):
     dic={"registered_stations":registered_stations,"not_registered_stations":not_registered_stations}
     return dic
 class ScannerApp(QtWidgets.QMainWindow):
+    '''Se crea una clase co'''
     def __init__(self):
         super(ScannerApp, self).__init__()
 
@@ -158,10 +160,10 @@ class ScannerApp(QtWidgets.QMainWindow):
 
         grid = QtWidgets.QGridLayout(central_widget)
 
-        labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step']
+        labels = ['PPM', 'Gain', 'Threshold', 'LNB LO', 'Start', 'Stop', 'Step','City']
         self.inputs = {}
 
-        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.5', 'lnb lo': '-125000000', 'start': '88000000', 'stop': '108000000', 'step': '100000'}
+        default_values = {'ppm': '0', 'gain': '25', 'threshold': '0.5', 'lnb lo': '-125000000', 'start': '88000000', 'stop': '108000000', 'step': '100000', 'city': 'CALDAS'}
 
         for i, label_text in enumerate(labels):
             label = QtWidgets.QLabel(label_text)
@@ -193,6 +195,7 @@ class ScannerApp(QtWidgets.QMainWindow):
             start=int(self.inputs['start'].text()),
             stop=int(self.inputs['stop'].text()),
             step=int(self.inputs['step'].text()),
+            city=str(self.inputs['city'].text()),
         )
     def psd_scanning(self,sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,threshold):
         '''Este metodo realiza un escaneo  '''
@@ -223,49 +226,15 @@ class ScannerApp(QtWidgets.QMainWindow):
                        #print(addition)
                         radio_stations.append(current_station)
                         radio_stations=find_relative_frequency(radio_stations)
-                        last_detected_station = radio_stations[-1]
-                        print(last_detected_station)
 
                     if peak_psd >= threshold:
                         self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
-            # freq += freq_step
+            freq += freq_step
 
         return radio_stations
-    # def psd_parallel_scanner(self,sdr,freq,lo_frequency,radio_psd_threshold,threshold):
-    #     '''Este metodo realiza un escaneo  '''
-    #     print(f"Scanning frequency: {freq / 1e6} MHz")
-    #     tune_to_frequency(sdr, freq, lo_frequency)
-    #     iq_samples = self.read_samples(sdr, freq)
-    #     iq_samples = sig.decimate(iq_samples, 24)
-
-    #     f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
-
-    #     peak_indices, frequencies = find_highest_magnitudes(psd, num_peaks=1, sample_rate=sample_rate / 24, fft_size=1024)
-    #     print(f"lasfrecuencias {frequencies}")
-    #     if peak_indices:
-    #         peak_index = peak_indices[0]
-    #         peak_frequency = frequencies[0]
-    #         peak_psd = psd[peak_index]
-    #         print(f"Peak frequency: {peak_frequency} Hz, PSD: {peak_psd}")
-
-    #         # Group nearby frequencies as one station
-    #         if peak_psd >= radio_psd_threshold:  # Check if the PSD value is above the radio station threshold
-                        
-    #             print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
-    #             current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6),"array":psd}
-    #             #addition=find_relative_frequency(current_station,radio_stations[-1])
-    #             #print(addition)
-    #             radio_stations.append(current_station)
-    #             radio_stations=find_relative_frequency(radio_stations)
-    #             last_detected_station = radio_stations[-1]
-    #             print(last_detected_station)
-    #             if peak_psd >= threshold:
-    #                 self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
-    #         # freq += freq_step
-
-    #     return current_station
+   
         
-    def scan(self, args):
+    def scan(self, args,plot_waterfall=False):
         sdr = RtlSdr()
         sdr.sample_rate = sample_rate = 2400000
         sdr.err_ppm = args.ppm
@@ -281,24 +250,28 @@ class ScannerApp(QtWidgets.QMainWindow):
         radio_psd_threshold = 2.5e-07
         freq_stop=args.stop
         freq_step=args.step
-        list_frequencies=[freq+x*1e5 for x in range(int((freq_stop-freq)/1e5)+1)]
         start=time.time()
-        # pool = multiprocessing.Pool(3)
-        # radio_stations = pool.map(self.psd_parallel_scanner, args=(sdr,list_frequencies,lo_frequency,radio_psd_threshold,args.threshold))
-
-
         radio_stations=self.psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args.threshold)
         print(radio_stations)
         print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
         print("\nDetected radio stations:")
         sdr.close()
+        #------------------------PLOTTING WATERFALL SECTION ---------------------------#
         wf = Waterfall()
         for station in radio_stations:
             print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
-            sdr.fc = station["freq"]
-            wf.showing_current_station()
+            wf.sdr.fc = station["freq"]
+            if plot_waterfall:
+                wf.showing_current_station()
 
             sdr.close()
+
+        #---------------------------STATION VERIFICATION ---------------------------#
+        directory = os.path.dirname(os.path.realpath(__file__))
+        file_path = Path(directory)/"Radioemisoras_ane.csv"
+        print(file_path)
+        verification_dic=station_verification(station["freq"], args.city, file_path)
+        print(verification_dic)
         return radio_stations
 
     @staticmethod

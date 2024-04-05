@@ -75,7 +75,7 @@ class Waterfall(object):
 def main():
     sdr = RtlSdr()
     wf = Waterfall(sdr)
-
+    sdr.fc=0
     wf.showing_current_station()
 
     # cleanup
