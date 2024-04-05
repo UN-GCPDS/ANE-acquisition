@@ -12,6 +12,7 @@ from scipy import signal as sig
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
 from water_fall_class import Waterfall
+import pandas as pd
 import multiprocessing
 import threading
 
@@ -139,8 +140,8 @@ def station_verification(radio, state, file_path):
 
     print(f'Las emisoras que no están en la base de datos son: {not_registered_stations}\n'
           f'y las emisoras que si están son: {registered_stations}')
-
-    return not_registered_stations, registered_stations
+    dic={"registered_stations":registered_stations,"not_registered_stations":not_registered_stations}
+    return dic
 class ScannerApp(QtWidgets.QMainWindow):
     def __init__(self):
         super(ScannerApp, self).__init__()
