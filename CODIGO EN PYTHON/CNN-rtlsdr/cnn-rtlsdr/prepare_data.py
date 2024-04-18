@@ -44,7 +44,7 @@ decimation_rate = 48
 sdr.err_ppm = 56   # change it to yours
 sdr.gain = 'auto'
 
-# collect_samples(422600000, "tetra")
+
 collect_samples(95000000, "wfm")
 collect_samples(104000000, "wfm")
 collect_samples(942200000, "gsm")

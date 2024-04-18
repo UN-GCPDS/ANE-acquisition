@@ -48,13 +48,10 @@ model = Model(inputs=input_signal, outputs=x)
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# model.summary()
 
 model.fit(Xtrain, Ytrain, epochs=50, batch_size=128, shuffle=True, validation_data=(Xtest, Ytest))
 
 # ============================================== #
-
-print("")
 sdr = RtlSdr()
 sdr.sample_rate = sample_rate = 2400000
 sdr.err_ppm = 56
@@ -103,8 +100,7 @@ def check(freq, corr):
             maxim = probability
             maxlabel = sigtype
     print(freq / 1000000, maxlabel, maxim * 100)
-
-    # calculate validation percent
+    
     if corr == maxlabel:
         global correct_predictions
         correct_predictions += 1
