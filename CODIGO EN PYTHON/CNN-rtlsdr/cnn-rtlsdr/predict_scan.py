@@ -46,6 +46,7 @@ sdr.err_ppm = args.ppm
 sdr.gain = args.gain
 
 classes = [d for d in os.listdir('training_data') if os.path.isdir(os.path.join('training_data', d))]
+print(classes)
 num_classes = len(classes)
 
 sess = tf.compat.v1.Session()
@@ -67,9 +68,6 @@ while freq <= args.stop:
 
     real = np.real(iq_samples)
     imag = np.imag(iq_samples)
-
-    # iq_samples = np.concatenate((real, imag))
-    # iq_samples = np.reshape(iq_samples, (-1, 2, 3200))
 
     iq_samples = []
     for i in range(0, np.ma.count(real) - 212):  # 128*192 magic
