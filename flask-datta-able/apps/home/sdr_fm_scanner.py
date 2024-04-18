@@ -30,8 +30,13 @@ def read_samples(sdr, freq):
     f_offset = 25000
     sample_rate = 2400000
     sdr.center_freq = freq - f_offset
+<<<<<<< HEAD
     time.sleep(0.01) 
     iq_samples = sdr.read_samples(2**15) 
+=======
+    time.sleep(0.01) # 
+    iq_samples = sdr.read_samples(2**17) #Numero de muestras
+>>>>>>> bd1823a57bf3ee7664bddfabd0b3382dc9ae26bb
     iq_samples = iq_samples[0:600000]
     fc1 = np.exp(-1.0j * 2.0 * np.pi * f_offset / sample_rate * np.arange(len(iq_samples)))
     iq_samples = iq_samples * fc1
@@ -91,6 +96,7 @@ def scan(args,plot_waterfall=False):
     for station in radio_stations:
         print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
     #---------------------------STATION VERIFICATION ---------------------------#
+
     directory = os.path.dirname(os.path.realpath(__file__))
     file_path = Path(directory)/"Radioemisoras_ane.csv"
     return radio_stations

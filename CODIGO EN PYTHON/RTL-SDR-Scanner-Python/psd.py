@@ -5,19 +5,10 @@ from rtlsdr import *
 from hackrf import *
 
 
-sdr = RtlSdr()
-
-# configure device
-sdr.sample_rate = 1e6
-sdr.center_freq = 88.3e6
-sdr.gain = 4
-
-samples = sdr.read_samples(256*1024)
-sdr.close()
 #----------------------CALCULATING THE POWER OF THE SIGNAL ------------------#
 #----------------------FUNCTION TO CALCULATE THE PWR FOR A SIGNAL FROM THE RTL-SDR----------------------#
 
-def pwr_rtlsdr(x):
+def PWR_SDR(x):
     '''
     This function calculate the PWR
     Input: x --> array numpy with iQ samples
@@ -27,12 +18,13 @@ def pwr_rtlsdr(x):
             min_pwr --> min pwr of the signal
     
     '''
-    avg_pwr = np.mean(np.abs(array)**2)
-    max_pwr=max(abs(array**2))
-    min_pwr=min(abs(array**2))
+    avg_pwr = np.mean(np.abs(x)**2)
+    max_pwr=max(abs(x**2))
+    min_pwr=min(abs(x**2))
     return avg_pwr,max_pwr,min_pwr
 
 hrf = HackRF()
 hrf.sample_rate = 20e6
 hrf.center_freq = 88.5e6
 samples = hrf.read_samples(2e6)
+print(PWR_SDR(samples))
