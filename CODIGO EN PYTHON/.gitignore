@@ -1,2 +1,3 @@
-**/testing_data
-**/training_data
+/cnn-rtlsdr/testing_data
+/cnn-rtlsdr/training_data
+/cnn-rtlsdr/rtlsdr-model.meta
