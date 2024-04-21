@@ -6,6 +6,13 @@ import sys, argparse
 from rtlsdr import RtlSdr
 import scipy.signal as signal
 
+#------------------disable tensorflow version 2 -------------------#
+tf.compat.v1.disable_v2_behavior()
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+
+
+#------------LEE LAS MUESTRAS DEL SDR-------------------#
 
 def read_samples(sdr, freq):
     f_offset = 250000  # shifted tune to avoid DC
@@ -15,17 +22,18 @@ def read_samples(sdr, freq):
     iq_samples = iq_samples[0:600000]
     fc1 = np.exp(-1.0j * 2.0 * np.pi * f_offset / sample_rate * np.arange(len(iq_samples)))  # shift down 250kHz
     iq_samples = iq_samples * fc1
+
     return iq_samples
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--ppm', type=int, default=0,
+parser.add_argument('--ppm', type=int, default=10,
                     help='dongle ppm error correction')
-parser.add_argument('--gain', type=int, default=20,
+parser.add_argument('--gain', type=int, default=10,
                     help='dongle gain level')
-parser.add_argument('--threshold', type=float, default=0.75,
+parser.add_argument('--threshold', type=float, default=0.9999,
                     help='threshold to display/hide predictions')
-parser.add_argument('--start', type=int, default=85000000,
+parser.add_argument('--start', type=int, default=88000000,
                     help='begin scan here, in Hertz')
 parser.add_argument('--stop', type=int, default=108000000,
                     help='stop scan here, in Hertz')
@@ -40,13 +48,20 @@ sdr.err_ppm = args.ppm
 sdr.gain = args.gain
 
 classes = [d for d in os.listdir('training_data') if os.path.isdir(os.path.join('training_data', d))]
+print(classes)
 num_classes = len(classes)
 
-sess = tf.Session()
-saver = tf.train.import_meta_graph('rtlsdr-model.meta')
-saver.restore(sess, tf.train.latest_checkpoint('./'))
 
-graph = tf.get_default_graph()
+
+sess = tf.compat.v1.Session()
+saver = tf.compat.v1.train.import_meta_graph('rtlsdr-model.meta')
+saver.restore(sess, tf.compat.v1.train.latest_checkpoint('./'))
+
+
+
+
+
+graph = tf.compat.v1.get_default_graph()
 y_pred = graph.get_tensor_by_name("y_pred:0")
 x = graph.get_tensor_by_name("x:0")
 y_true = graph.get_tensor_by_name("y_true:0")
@@ -62,9 +77,6 @@ while freq <= args.stop:
     real = np.real(iq_samples)
     imag = np.imag(iq_samples)
 
-    # iq_samples = np.concatenate((real, imag))
-    # iq_samples = np.reshape(iq_samples, (-1, 2, 3200))
-
     iq_samples = []
     for i in range(0, np.ma.count(real) - 212):  # 128*192 magic
         iq_samples.append(real[i])
@@ -75,11 +87,11 @@ while freq <= args.stop:
 
     samples = np.array(samples)
 
-    # x_batch = samples.reshape(1, 1, 3200, 2)
     x_batch = samples.reshape(1, 96, 128, 2)
 
     feed_dict_testing = {x: x_batch, y_true: y_test_samples}
     result = sess.run(y_pred, feed_dict=feed_dict_testing)
+#----------------------------------------------------------------------#
 
     max = 0.0
     maxlabel = ""
