@@ -10,8 +10,6 @@ import scipy.signal as signal
 tf.compat.v1.disable_v2_behavior()
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
-
-
 #------------LEE LAS MUESTRAS DEL SDR-------------------#
 
 def read_samples(sdr, freq):

@@ -14,7 +14,7 @@ train_path = 'training_data'
 classes = [d for d in os.listdir(train_path) if os.path.isdir(os.path.join(train_path, d))]
 num_classes = len(classes)
 
-data = dataset2.read_train_sets2(train_path, classes, validation_size=0.3)
+data = dataset2.read_train_sets2(train_path, classes, validation_size=0.2)
 
 Xtrain = data.train.images
 Ytrain = data.train.labels
