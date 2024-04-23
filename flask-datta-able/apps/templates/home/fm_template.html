@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <h1>FM Template</h1>
+
+        <form id="params_psd">
+
+            <div class="params_psd">
+                <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="5"> </label>
+                <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="15"> </label>
+                <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="10"> </label><br>
+                <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="50"> </label>
+                <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="28"> </label>
+                <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="70"> </label>
+            </div>
+            
+            <button class="send_params" type="button" onclick="startPPM()">send params</button>
+
+            <script>
+            function startPPM() {
+                const form = document.getElementById('params_psd');
+            
+                const ppm = form.querySelector('#ppm').value;
+                const start = form.querySelector('#start').value;
+                const stop = form.querySelector('#stop').value;
+                const threshold = form.querySelector('#threshold').value;
+                const city = form.querySelector('#city').value;
+                const gain = form.querySelector('#gain').value;
+            
+            
+                const PPMData = {
+                    ppm: ppm,
+                    start: start,
+                    stop: stop,
+                    threshold: threshold,
+                    city: city,
+                    gain: gain
+                };
+                    
+                // Envía la solicitud POST
+                fetch('/start_ppm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(PPMData)
+                })
+                
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+            </script>
+            
+        </form> 
+    </div>
+    <!-- [ Main Content ] end -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
