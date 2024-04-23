@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 import multiprocessing
 import threading
-
+from scipy import signal 
 def find_relative_frequency(radio):
     '''
     Selects frequencies where the Power Spectral Density (PSD) is higher 
@@ -133,3 +133,119 @@ def station_verification(radio, state, file_path):
           f'y las emisoras que si están son: {registered_stations}')
     dic={"registered_stations":registered_stations,"not_registered_stations":not_registered_stations}
     return dic
+
+
+
+#------------------------------------------FUNCIONES DEMODULACION FM ---------------------------#
+def downsample(x, M, p=0):  
+    if not isinstance(M, int):
+        raise TypeError("M must be an int")
+    x = x[0:int(np.floor(len(x) / M)) * M]
+    x = x.reshape((int(np.floor(len(x) / M)), M))
+    y = x[:,p]
+    return y
+
+def fm_discrim(x):
+    X = np.real(x)
+    Y = np.imag(x)
+    b = np.array([1, -1])
+    dY = signal.lfilter(b, 1, Y)
+    dX = signal.lfilter(b, 1, X)
+    discriminated = (X * dY - Y * dX) / (X**2 + Y**2 + 1e-10)
+    return discriminated
+
+def fm_audio(samples, fs=2.4e6, fc=92.7e6, fc1=200e3, fc2=12e3, d1=10, d2=5, plot=False):
+    lpf_b1 = signal.firwin(64, fc1/(float(fs)/2))
+    lpf_b2 = signal.firwin(64, fc2/(float(fs)/d1/2))
+    
+    # 1st filtering
+    samples_filtered_1 = signal.lfilter(lpf_b1, 1, samples)
+    # 1st decimation
+    samples_decimated_1 = downsample(samples_filtered_1, d1)
+    # phase discrimination
+    samples_discriminated = fm_discrim(samples_decimated_1)
+    # 2nd filtering
+    samples_filtered_2 = signal.lfilter(lpf_b2, 1, samples_discriminated)
+    # 2nd decimation
+    audio = downsample(samples_filtered_2, d2)
+    
+    if plot:
+        fig, ((ax0, ax1, ax2), (ax3, ax4, ax5)) = plt.subplots(2, 3, figsize=(15, 10))
+
+        ax0.psd(samples, NFFT=1024, Fs=fs/1e6, Fc=fc/1e6)
+        ax0.set_title("samples")
+        ax0.set_xlabel('Frequency (MHz)')
+        ax0.set_ylabel('Relative power (dB)')
+        
+        ax1.psd(samples_filtered_1, NFFT=1024, Fs=fs/1e6, Fc=fc/1e6)
+        ax1.set_title("samples_filtered_1")
+        ax1.set_xlabel('Frequency (MHz)')
+        ax1.set_ylabel('Relative power (dB)')
+
+        ax2.psd(samples_decimated_1, NFFT=1024, Fs=fs/d1/1e6, Fc=fc/1e6)
+        ax2.title.set_text('samples_decimated_1')
+        ax1.set_xlabel('Frequency (MHz)')
+        ax1.set_ylabel('Relative power (dB)')
+
+        ax3.psd(samples_discriminated, NFFT=1024, Fs=fs/d1, Fc=0)
+        ax3.title.set_text('samples_discriminated')
+
+        ax4.psd(samples_filtered_2, NFFT=1024, Fs=fs/d1, Fc=0)
+        ax4.title.set_text('samples_filtered_2')
+        
+        ax5.psd(audio, NFFT=1024, Fs=fs/d1/d2, Fc=0)
+        ax5.title.set_text('audio')
+
+        plt.show()
+        
+        return audio, fig, (ax0, ax1, ax2, ax3, ax4, ax5)
+    else:
+        return audio
+    
+def fm_audio(samples, fs=2.4e6, fc=92.7e6, fc1=200e3, fc2=12e3, d1=10, d2=5, plot=False):
+    lpf_b1 = signal.firwin(64, fc1/(float(fs)/2))
+    lpf_b2 = signal.firwin(64, fc2/(float(fs)/d1/2))
+    
+    # 1st filtering
+    samples_filtered_1 = signal.lfilter(lpf_b1, 1, samples)
+    # 1st decimation
+    samples_decimated_1 = downsample(samples_filtered_1, d1)
+    # phase discrimination
+    samples_discriminated = fm_discrim(samples_decimated_1)
+    # 2nd filtering
+    samples_filtered_2 = signal.lfilter(lpf_b2, 1, samples_discriminated)
+    # 2nd decimation
+    audio = downsample(samples_filtered_2, d2)
+    
+    if plot:
+        fig, ((ax0, ax1, ax2), (ax3, ax4, ax5)) = plt.subplots(2, 3, figsize=(15, 10))
+
+        ax0.psd(samples, NFFT=1024, Fs=fs/1e6, Fc=fc/1e6)
+        ax0.set_title("samples")
+        ax0.set_xlabel('Frequency (MHz)')
+        ax0.set_ylabel('Relative power (dB)')
+        
+        ax1.psd(samples_filtered_1, NFFT=1024, Fs=fs/1e6, Fc=fc/1e6)
+        ax1.set_title("samples_filtered_1")
+        ax1.set_xlabel('Frequency (MHz)')
+        ax1.set_ylabel('Relative power (dB)')
+
+        ax2.psd(samples_decimated_1, NFFT=1024, Fs=fs/d1/1e6, Fc=fc/1e6)
+        ax2.title.set_text('samples_decimated_1')
+        ax1.set_xlabel('Frequency (MHz)')
+        ax1.set_ylabel('Relative power (dB)')
+
+        ax3.psd(samples_discriminated, NFFT=1024, Fs=fs/d1, Fc=0)
+        ax3.title.set_text('samples_discriminated')
+
+        ax4.psd(samples_filtered_2, NFFT=1024, Fs=fs/d1, Fc=0)
+        ax4.title.set_text('samples_filtered_2')
+        
+        ax5.psd(audio, NFFT=1024, Fs=fs/d1/d2, Fc=0)
+        ax5.title.set_text('audio')
+
+        plt.show()
+        
+        return audio, fig, (ax0, ax1, ax2, ax3, ax4, ax5)
+    else:
+        return audio

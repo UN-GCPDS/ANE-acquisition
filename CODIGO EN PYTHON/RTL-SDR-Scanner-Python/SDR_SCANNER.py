@@ -108,15 +108,12 @@ class ScannerApp(QtWidgets.QMainWindow):
                         
                         print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
                         current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6),"array":psd}
-                        #addition=find_relative_frequency(current_station,radio_stations[-1])
-                       #print(addition)
                         radio_stations.append(current_station)
                         radio_stations=find_relative_frequency(radio_stations)
 
                     if peak_psd >= threshold:
                         self.result_list.addItem('{:.3f} MHz - {:.2f}'.format(freq / 1e6, peak_psd * 100))
             freq += freq_step
-
         return radio_stations
    
         
@@ -133,7 +130,7 @@ class ScannerApp(QtWidgets.QMainWindow):
         min_distance = 200000  # Minimum distance between stations in Hz
         
         #Se tiene que variar el treshold de acuerdo a las potencia de la señal y la ubicacion en la cual estan
-        radio_psd_threshold = 2.5e-07
+        radio_psd_threshold = 2e-08
         freq_stop=args.stop
         freq_step=args.step
         start=time.time()
