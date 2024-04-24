@@ -14,15 +14,17 @@
         <form id="params_psd">
 
             <div class="params_psd">
-                <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="5"> </label>
-                <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="15"> </label>
-                <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="10"> </label><br>
-                <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="50"> </label>
-                <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="28"> </label>
-                <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="70"> </label>
+                <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
+                <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="88000000"> </label>
+                <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="108000000"> </label><br>
+                <label>Step <input type="number" id="stop" placeholder="texto_sugerencia" value="100000"> </label><br>
+                <label>lnb lo <input type="number" id="start" placeholder="texto_sugerencia" value="125000000"> </label>
+                <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="0.15"> </label>
+                <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="CALDAS"> </label>
+                <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="15"> </label>
             </div>
             
-            <button class="send_params" type="button" onclick="startPPM()">send params</button>
+            <button class="send_params" type="button" onclick="startPPM()">Enviar</button>
 
             <script>
             function startPPM() {
@@ -31,7 +33,9 @@
                 const ppm = form.querySelector('#ppm').value;
                 const start = form.querySelector('#start').value;
                 const stop = form.querySelector('#stop').value;
+                const step = form.querySelector('#stop').value;
                 const threshold = form.querySelector('#threshold').value;
+                const lnb_lo = form.querySelector('#stop').value;
                 const city = form.querySelector('#city').value;
                 const gain = form.querySelector('#gain').value;
             
@@ -40,7 +44,9 @@
                     ppm: ppm,
                     start: start,
                     stop: stop,
+                    step: step,
                     threshold: threshold,
+                    lnb_lo: lnb_lo,
                     city: city,
                     gain: gain
                 };

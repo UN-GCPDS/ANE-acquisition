@@ -1,13 +1,14 @@
-# -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
 
 from apps.home import blueprint
 from flask import render_template, request
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 from flask import jsonify
+from apps.home.sdr_fm_scanner import scan
+import json
+
+
+
 
 
 @blueprint.route('/index')
@@ -57,8 +58,16 @@ def get_segment(request):
 @blueprint.route('/start_ppm', methods=['POST'])
 @login_required
 def start_bot():
-    data = request.json  # Accede a los datos JSON enviados en la solicitud
-    print(data)
+    if request.method == "POST":
 
-    response_message = f"started successfully."
+        for arg in request.json:
+            if arg !="city" and arg != "threshold":
+                request.json[arg] = int(request.json[arg])
+            elif arg == "threshold":
+                request.json[arg] = float(request.json[arg])
+
+        lista_frecuencias_encontradas=scan(request.json)
+        
+
+    response_message = f"mensaje enviado."
     return jsonify({'message': response_message})
