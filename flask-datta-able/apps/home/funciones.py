@@ -6,13 +6,11 @@ import numpy as np
 import os
 import json
 import matplotlib.pyplot as plt
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSlot
+
 from rtlsdr import RtlSdr
 from scipy import signal as sig
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
 from matplotlib.mlab import psd
-from water_fall_class import Waterfall
+# from water_fall_class import Waterfall
 from pathlib import Path
 import pandas as pd
 import multiprocessing
