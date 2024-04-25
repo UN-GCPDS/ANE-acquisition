@@ -18,7 +18,6 @@ DEBUG = (os.getenv('DEBUG', 'False') == 'True')
 get_config_mode = 'Debug' if DEBUG else 'Production'
 
 try:
-
     # Load the configuration using the default values
     app_config = config_dict[get_config_mode.capitalize()]
 
