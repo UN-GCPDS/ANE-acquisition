@@ -12,18 +12,31 @@
         <h1>FM Template</h1>
 
         <form id="params_psd">
+<<<<<<< HEAD
+=======
+
+>>>>>>> dev-1
             <div class="params_psd">
                 <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
                 <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="88000000"> </label>
                 <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="108000000"> </label><br>
+<<<<<<< HEAD
                 <label>Step <input type="number" id="step" placeholder="texto_sugerencia" value="100000"> </label><br>
                 <label>lnb lo <input type="number" id="lnb_lo" placeholder="texto_sugerencia" value="125000000"> </label>
+=======
+                <label>Step <input type="number" id="stop" placeholder="texto_sugerencia" value="100000"> </label><br>
+                <label>lnb lo <input type="number" id="start" placeholder="texto_sugerencia" value="125000000"> </label>
+>>>>>>> dev-1
                 <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="0.15"> </label>
                 <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="CALDAS"> </label>
                 <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="15"> </label>
             </div>
+<<<<<<< HEAD
         </form> 
 
+=======
+            
+>>>>>>> dev-1
             <button class="send_params" type="button" onclick="startPPM()">Enviar</button>
 
             <script>
@@ -33,12 +46,22 @@
                 const ppm = form.querySelector('#ppm').value;
                 const start = form.querySelector('#start').value;
                 const stop = form.querySelector('#stop').value;
+<<<<<<< HEAD
                 const step = form.querySelector('#step').value;
                 const threshold = form.querySelector('#threshold').value;
                 const lnb_lo = form.querySelector('#lnb_lo').value;
                 const city = form.querySelector('#city').value;
                 const gain = form.querySelector('#gain').value;
             
+=======
+                const step = form.querySelector('#stop').value;
+                const threshold = form.querySelector('#threshold').value;
+                const lnb_lo = form.querySelector('#stop').value;
+                const city = form.querySelector('#city').value;
+                const gain = form.querySelector('#gain').value;
+            
+            
+>>>>>>> dev-1
                 const PPMData = {
                     ppm: ppm,
                     start: start,
@@ -69,7 +92,11 @@
             }
             </script>
             
+<<<<<<< HEAD
         
+=======
+        </form> 
+>>>>>>> dev-1
     </div>
     <!-- [ Main Content ] end -->
 
