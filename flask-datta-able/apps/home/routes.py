@@ -4,12 +4,10 @@ from flask import render_template, request
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 from flask import jsonify
-from apps.home.sdr_fm_scanner import scan
+from apps.home.sdr_fm_scanner import scan 
+from apps.home.funciones import fm_audio
 import json
-<<<<<<< HEAD
 import time
-=======
->>>>>>> dev-1
 
 
 
@@ -58,24 +56,26 @@ def get_segment(request):
 
     except:
         return None
+    
 
 @blueprint.route('/start_ppm', methods=['POST'])
 @login_required
 def start_bot():
     if request.method == "POST":
-
         for arg in request.json:
             if arg !="city" and arg != "threshold":
                 request.json[arg] = int(request.json[arg])
             elif arg == "threshold":
                 request.json[arg] = float(request.json[arg])
-<<<<<<< HEAD
-        print(request)
-
-        lista_frecuencias_encontradas=scan(request.json)
+#-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
+        lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
+        for signal in lista_frecuencias_encontradas:
+            samples = fm_audio(fc=int(signal["freq"]), plot=True)
 
     response_message = f"mensaje enviado."
     return jsonify({'message': response_message})
+
+
 
 @blueprint.route('/test_cpu', methods=['GET'])
 def test_cpu():
@@ -87,11 +87,3 @@ def test_cpu():
     print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
     response_message = f"mensaje enviado."
     return jsonify({'time': time.time()-start})
-=======
-
-        lista_frecuencias_encontradas=scan(request.json)
-        
-
-    response_message = f"mensaje enviado."
-    return jsonify({'message': response_message})
->>>>>>> dev-1
