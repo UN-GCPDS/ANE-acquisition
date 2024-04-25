@@ -6,6 +6,10 @@ from jinja2 import TemplateNotFound
 from flask import jsonify
 from apps.home.sdr_fm_scanner import scan
 import json
+<<<<<<< HEAD
+import time
+=======
+>>>>>>> dev-1
 
 
 
@@ -65,9 +69,29 @@ def start_bot():
                 request.json[arg] = int(request.json[arg])
             elif arg == "threshold":
                 request.json[arg] = float(request.json[arg])
+<<<<<<< HEAD
+        print(request)
+
+        lista_frecuencias_encontradas=scan(request.json)
+
+    response_message = f"mensaje enviado."
+    return jsonify({'message': response_message})
+
+@blueprint.route('/test_cpu', methods=['GET'])
+def test_cpu():
+    start=time.time()
+    for i in range(1200):
+        a=i**2
+        time.sleep(0.05)
+        print(a)
+    print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
+    response_message = f"mensaje enviado."
+    return jsonify({'time': time.time()-start})
+=======
 
         lista_frecuencias_encontradas=scan(request.json)
         
 
     response_message = f"mensaje enviado."
     return jsonify({'message': response_message})
+>>>>>>> dev-1
