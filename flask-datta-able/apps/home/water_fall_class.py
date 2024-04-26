@@ -9,6 +9,7 @@ import numpy as np
 import sys
 from rtlsdr import RtlSdr
 import time
+import os
 '''
 Estas son las variables iniciales
 
@@ -52,7 +53,7 @@ class Waterfall(object):
 
 
 
-    def showing_current_station(self):
+    def showing_current_station(self,path):
         self.update_plot_labels()
         tiempo= time.time()
         for frame in range(self.image_buffer.shape[0]):
@@ -68,8 +69,9 @@ class Waterfall(object):
 
         print(f"tiempo que se demora el codigo {time.time()-tiempo}")
         plt.title(f"Espectrograma en la frecuencia {self.sdr.fc/1e6}")
-        plt.savefig(f'my_plot{self.sdr.fc/1e6}.png')
-        plt.show()
+        path=os.path.join(path,f"waterfall__{self.sdr.fc/1e6}.png")
+        plt.savefig(path)
+        self.sdr.close()
         return self.image
     
 def main():
@@ -77,7 +79,6 @@ def main():
     wf = Waterfall(sdr)
     sdr.fc=0
     wf.showing_current_station()
-
     # cleanup
     sdr.close()
 

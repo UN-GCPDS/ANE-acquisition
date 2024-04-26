@@ -6,12 +6,12 @@ import numpy as np
 import os
 import json
 import matplotlib.pyplot as plt
-
+from IPython.display import Audio
 from rtlsdr import RtlSdr
 from scipy import signal as sig
 from matplotlib.mlab import psd
 from apps.home.water_fall_class import Waterfall
-
+from scipy.io.wavfile import write
 
 from pathlib import Path
 import pandas as pd
@@ -156,7 +156,7 @@ def fm_discrim(x):
     discriminated = (X * dY - Y * dX) / (X**2 + Y**2 + 1e-10)
     return discriminated
     
-def fm_audio( fs=2.4e6, fc=92.7e6, fc1=200e3, fc2=12e3, d1=10, d2=5, plot=False):
+def fm_audio( fs=2.4e6, fc=92.7e6, fc1=200e3, fc2=12e3, d1=10, d2=5, plot=False,path=1):
     
     sdr = RtlSdr() 
     sdr.sample_rate = fs  # Hz
@@ -206,10 +206,15 @@ def fm_audio( fs=2.4e6, fc=92.7e6, fc1=200e3, fc2=12e3, d1=10, d2=5, plot=False)
         
         ax5.psd(audio, NFFT=1024, Fs=fs/d1/d2, Fc=0)
         ax5.title.set_text('audio')
-
-        plt.show()
+        #-------------GUARDAMOS LA IMAGEN DE LA DEMODULACION ---------------------#
+        imagepath=os.path.join(path,f"demodulacion_estacion__{fc/1e6}.png")
+        plt.savefig(imagepath)
         
-    
+        #---------------------------GUARDAMOS EL AUDIO DEMODULADO------------------#
+        audiopath=os.path.join(path,f"audio_demodulado{int(fc/1e6)}.wav")
+        audio=Audio(audio, rate=48000)
+        with open(audiopath, 'wb') as f:
+            f.write(audio.data)
         return audio, fig, (ax0, ax1, ax2, ax3, ax4, ax5)
     else:
         return audio

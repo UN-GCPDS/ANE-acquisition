@@ -27,7 +27,7 @@ def read_samples(sdr, freq):
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--ppm', type=int, default=10,
                     help='dongle ppm error correction')
-parser.add_argument('--gain', type=int, default=10,
+parser.add_argument('--gain', type=int, default=7,
                     help='dongle gain level')
 parser.add_argument('--threshold', type=float, default=0.9999,
                     help='threshold to display/hide predictions')
