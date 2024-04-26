@@ -4,12 +4,12 @@ from flask import render_template, request
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 from flask import jsonify
-from apps.home.sdr_fm_scanner import scan
+from apps.home.sdr_fm_scanner import scan 
+from apps.home.funciones import fm_audio
 import json
-<<<<<<< HEAD
 import time
-=======
->>>>>>> dev-1
+import os
+from apps.home.water_fall_class import Waterfall
 
 
 
@@ -58,12 +58,14 @@ def get_segment(request):
 
     except:
         return None
+    
 
 @blueprint.route('/start_ppm', methods=['POST'])
 @login_required
 def start_bot():
     if request.method == "POST":
-
+        start=time.time()
+        response_message = f"mensaje enviado."
         for arg in request.json:
             if arg !="city" and arg != "threshold":
                 request.json[arg] = int(request.json[arg])
@@ -89,9 +91,23 @@ def test_cpu():
     return jsonify({'time': time.time()-start})
 =======
 
-        lista_frecuencias_encontradas=scan(request.json)
-        
+#-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS Y WATERFALL -----------------------#
+        lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
+        for signal in lista_frecuencias_encontradas:
+            newpath = f".\\apps\static\\assets\\images\\fm_stations\\{signal['freq'] / 1e6}"
+            if not os.path.exists(newpath):
+                os.makedirs(newpath)
+        #------------------------PLOTTING WATERFALL SECTION ---------------------------#
+            print(f"Band: {signal['freq'] / 1e6} MHz - PSD: {signal['psd']}")
+            wf = Waterfall()
+            wf.sdr.fc = signal["freq"]
+            print(wf.sdr.fc)
+            wf.showing_current_station(path=newpath)
+            #------------------------PLOTTING WATERFALL SECTION ---------------------------#
+            samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
+        return jsonify({'time': time.time()-start})
 
-    response_message = f"mensaje enviado."
+
+
+
     return jsonify({'message': response_message})
->>>>>>> dev-1

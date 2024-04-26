@@ -65,10 +65,7 @@ def psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,t
     return radio_stations
 
 def scan(args,plot_waterfall=False):
-<<<<<<< HEAD
     print(args)
-=======
->>>>>>> dev-1
     sdr = RtlSdr()
     sdr.sample_rate = 2400000
     sdr.err_ppm = args["ppm"]
@@ -85,11 +82,7 @@ def scan(args,plot_waterfall=False):
     start=time.time()
     radio_stations=psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args["threshold"])
     print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
-<<<<<<< HEAD
-    #print("\nDetected radio stations:")
-=======
     print("\nDetected radio stations:")
->>>>>>> dev-1
     # sdr.close()
     # #------------------------PLOTTING WATERFALL SECTION ---------------------------#
     # wf = Waterfall()
@@ -107,12 +100,6 @@ def scan(args,plot_waterfall=False):
     return radio_stations
 
 
-<<<<<<< HEAD
-if __name__ == '__main__':
-    args={'ppm': 0, 'gain': 15, 'threshold': 0.15, 'lnb_lo': -125000000, 'start': 88000000, 'stop': 108000000, 'step': 100000, 'city': 'CALDAS'}
-    lista_frecuencias=scan(args=args)
-=======
 # if __name__ == '__main__':
 #     args={'ppm': 0, 'gain': 15, 'threshold': 0.15, 'lnb_lo': -125000000, 'start': 88000000, 'stop': 108000000, 'step': 100000, 'city': 'CALDAS'}
 #     lista_frecuencias=scan(args=args)
->>>>>>> dev-1
