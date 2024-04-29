@@ -87,7 +87,6 @@ def test_cpu():
         print(a)
     print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
     response_message = f"mensaje enviado."
-    return jsonify({'time': time.time()-start})
 
 #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS Y WATERFALL -----------------------#
         lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
