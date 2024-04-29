@@ -81,21 +81,7 @@ def scan(args,plot_waterfall=False):
     freq_step=args["step"]
     start=time.time()
     radio_stations=psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args["threshold"])
-<<<<<<< HEAD
-    print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
-    print("\nDetected radio stations:")
-    # sdr.close()
-    # #------------------------PLOTTING WATERFALL SECTION ---------------------------#
-    # wf = Waterfall()
-    for station in radio_stations:
-        print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
-        # wf.sdr.fc = station["freq"]
-        # if plot_waterfall:
-        #     wf.showing_current_station()
-        # sdr.close()
-=======
     sdr.close()
->>>>>>> 953e901 (se agrega audio para las señales encontradas)
     #---------------------------STATION VERIFICATION ---------------------------#
     directory = os.path.dirname(os.path.realpath(__file__))
     file_path = Path(directory)/"Radioemisoras_ane.csv"

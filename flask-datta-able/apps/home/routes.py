@@ -86,12 +86,8 @@ def start_bot():
             wf.showing_current_station(path=newpath)
             #------------------------PLOTTING WATERFALL SECTION ---------------------------#
             samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
-        return jsonify({'time': time.time()-start})
+    return jsonify({'message': time.time()-start})
 
-
-
-
-    return jsonify({'message': response_message})
 
 @blueprint.route('/test_cpu', methods=['GET'])
 def test_cpu():
