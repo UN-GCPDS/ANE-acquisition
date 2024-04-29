@@ -3,7 +3,7 @@
 {% block title %} Profile {% endblock %} 
 
 <!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %} <link rel="stylesheet" href="{{ config.ASSETS_ROOT }}/css/fm_template.css" {% endblock stylesheets %}
 
 {% block content %}
 
@@ -11,22 +11,68 @@
     <div class="pcoded-main-container">
         <h1>FM Template</h1>
 
-        <form id="params_psd">
-            <div class="params_psd">
-                <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
-                <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="88000000"> </label>
-                <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="108000000"> </label><br>
-                <label>Step <input type="number" id="step" placeholder="texto_sugerencia" value="100000"> </label><br>
-                <label>lnb lo <input type="number" id="lnb_lo" placeholder="texto_sugerencia" value="125000000"> </label>
-                <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="0.15"> </label>
-                <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="CALDAS"> </label>
-                <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="15"> </label>
+        <div class="model">
+            <div class="radio-inputs">
+                <label class="radio">
+                <input id="psd_radio" type="radio" name="radio" onclick="showTab('psd')" checked>
+                <span class="name">PSD Model</span>
+                </label>
+                <label class="radio">
+                <input id='cnn_radio' type="radio" name="radio"  onclick="showTab('cnn')">
+                <span class="name">CNN Network</span>
+                </label>
             </div>
-        </form> 
+        
 
-            <button class="send_params" type="button" onclick="startPPM()">Enviar</button>
+            <section id="psd" class="tabContent">
+                <form id="params_psd" class="params">
+                    <label> vars psd</label>
+                    <div class="params_psd">
+                        <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
+                        <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="88000000"> </label>
+                        <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="108000000"> </label><br>
+                        <label>Step <input type="number" id="step" placeholder="texto_sugerencia" value="100000"> </label><br>
+                        <label>lnb lo <input type="number" id="lnb_lo" placeholder="texto_sugerencia" value="125000000"> </label>
+                        <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="0.15"> </label>
+                        <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="CALDAS"> </label>
+                        <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="15"> </label>
+                    </div>
+                </form> 
+
+                    <button class="btn btn-primary"  type="button" onclick="startPPM()">Start method psd</button>
+            
+            </section>
+
+            <section id="cnn" class="tabContent">
+                <form id="params_cnn" class="params">
+                    <label> vars cnn</label>
+                    <div class="params_psd">
+                        <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
+                        <label>Start <input type="number" id="start" placeholder="texto_sugerencia" value="88000000"> </label>
+                        <label>Stop <input type="number" id="stop" placeholder="texto_sugerencia" value="108000000"> </label><br>
+                        <label>Step <input type="number" id="step" placeholder="texto_sugerencia" value="100000"> </label><br>
+                        <label>lnb lo <input type="number" id="lnb_lo" placeholder="texto_sugerencia" value="125000000"> </label>
+                        <label>Threshold <input type="number" id="threshold" placeholder="texto_sugerencia" value="0.15"> </label>
+                        <label>City <input type="text" id="city" placeholder="texto_sugerencia" value="CALDAS"> </label>
+                        <label>Gain <input type="number" id="gain" placeholder="texto_sugerencia" value="15"> </label>
+                    </div>
+                </form> 
+
+                    <button class="btn btn-primary" type="button" onclick="startPPM()">Start method cnn</button>
+                    
+            </section>
+
+        </div>
 
             <script>
+            
+            // Ocultar la sección 'cnn' al cargar la página
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("cnn").style.display = "none";
+                document.getElementById("psd_radio").checked = true;
+            });
+
+
             function startPPM() {
                 const form = document.getElementById('params_psd');
             
@@ -38,7 +84,6 @@
                 const lnb_lo = form.querySelector('#lnb_lo').value;
                 const city = form.querySelector('#city').value;
                 const gain = form.querySelector('#gain').value;
-            
             
                 const PPMData = {
                     ppm: ppm,
@@ -69,6 +114,20 @@
                 });
             }
             </script>
+        
+        
+          
+          <div id="inProgress" class="tabContent">Contenido de In Progress...</div>
+          
+          <script>
+          function showTab(tabId) {
+            var tabs = document.getElementsByClassName('tabContent');
+            for (var i = 0; i < tabs.length; i++) {
+              tabs[i].style.display = 'none';
+            }
+            document.getElementById(tabId).style.display = 'block';
+          }
+          </script>   
             
         
     </div>
