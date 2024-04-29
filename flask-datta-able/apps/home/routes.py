@@ -1,15 +1,16 @@
-
+#------------------------IMPORTAMOS LIBRERIAS-------------------------#
 from apps.home import blueprint
 from flask import render_template, request
 from flask_login import login_required
 from jinja2 import TemplateNotFound
 from flask import jsonify
 from apps.home.sdr_fm_scanner import scan 
+from apps.home.water_fall_class import Waterfall 
 from apps.home.funciones import fm_audio
 import json
 import time
-
-
+import os
+#--------------------------------------------------------------------#
 
 
 
@@ -62,6 +63,8 @@ def get_segment(request):
 @login_required
 def start_bot():
     if request.method == "POST":
+        start=time.time()
+        print(request.json)
         for arg in request.json:
             if arg !="city" and arg != "threshold":
                 request.json[arg] = int(request.json[arg])
@@ -69,6 +72,7 @@ def start_bot():
                 request.json[arg] = float(request.json[arg])
 #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
         lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
+        #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
         for signal in lista_frecuencias_encontradas:
             newpath = f".\\apps\static\\assets\\images\\fm_stations\\{signal['freq'] / 1e6}"
             if not os.path.exists(newpath):
@@ -79,7 +83,7 @@ def start_bot():
             wf.sdr.fc = signal["freq"]
             print(wf.sdr.fc)
             wf.showing_current_station(path=newpath)
-            #------------------------PLOTTING WATERFALL SECTION ---------------------------#
+            #------------------------demo ---------------------------#
             samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
     return jsonify({'message': time.time()-start})
 
