@@ -8,8 +8,6 @@ from apps.home.sdr_fm_scanner import scan
 from apps.home.funciones import fm_audio
 import json
 import time
-import os
-from apps.home.water_fall_class import Waterfall
 
 
 
@@ -64,15 +62,12 @@ def get_segment(request):
 @login_required
 def start_bot():
     if request.method == "POST":
-        start=time.time()
-        response_message = f"mensaje enviado."
         for arg in request.json:
             if arg !="city" and arg != "threshold":
                 request.json[arg] = int(request.json[arg])
             elif arg == "threshold":
                 request.json[arg] = float(request.json[arg])
-
-#-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS Y WATERFALL -----------------------#
+#-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
         lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
         for signal in lista_frecuencias_encontradas:
             newpath = f".\\apps\static\\assets\\images\\fm_stations\\{signal['freq'] / 1e6}"
