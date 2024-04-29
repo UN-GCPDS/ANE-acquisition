@@ -39,7 +39,7 @@
                     </div>
                 </form> 
 
-                    <button class="btn btn-primary"  type="button" onclick="startPPM()">Start method psd</button>
+                    <button class="btn btn-primary" id="psd" type="button" onclick="startPPM(this.id)">Start method psd</button>
             
             </section>
 
@@ -58,7 +58,7 @@
                     </div>
                 </form> 
 
-                    <button class="btn btn-primary" type="button" onclick="startPPM()">Start method cnn</button>
+                    <button class="btn btn-primary" id="cnn" type="button" onclick="startPPM(this.id)">Start method cnn</button>
                     
             </section>
 
@@ -73,9 +73,8 @@
             });
 
 
-            function startPPM() {
+            function startPPM(id) {
                 const form = document.getElementById('params_psd');
-            
                 const ppm = form.querySelector('#ppm').value;
                 const start = form.querySelector('#start').value;
                 const stop = form.querySelector('#stop').value;
@@ -84,6 +83,7 @@
                 const lnb_lo = form.querySelector('#lnb_lo').value;
                 const city = form.querySelector('#city').value;
                 const gain = form.querySelector('#gain').value;
+                const button =id;
             
             
                 const PPMData = {
@@ -94,7 +94,8 @@
                     threshold: threshold,
                     lnb_lo: lnb_lo,
                     city: city,
-                    gain: gain
+                    gain: gain,
+                    button:button,
                 };
                     
                 // Envía la solicitud POST
