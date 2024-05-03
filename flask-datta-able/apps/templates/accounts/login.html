@@ -15,13 +15,13 @@
             <div class="card">
                 <div class="card-body text-center">
 
-                    <h3 class="mb-4">Login</h3>
+                    <h3 class="mb-4">Ingresar Usuario</h3>
 
                     <span class="mb-0 text-muted">
                         {% if msg %}
                             <span class="text-danger">{{ msg | safe }}</span>
                         {% else %}
-                            Add your credentials
+                            Agregar credenciales
                         {% endif %} 
                     </span>
 
@@ -40,11 +40,11 @@
                             {{ form.password(placeholder="Password", class="form-control", type="password") }}
                         </div>
                         
-                        <button type="submit" name="login" class="btn btn-primary shadow-2 mb-4">Login</button>
+                        <button type="submit" name="login" class="btn btn-primary shadow-2 mb-4">Ingresar</button>
 
                     </form>
 
-                    <p class="mb-0 text-muted">Don’t have an account? <a href="{{ url_for('authentication_blueprint.register') }}" >Sign UP</a></p>
+                    <p class="mb-0 text-muted">No tienes cuenta ? <a href="{{ url_for('authentication_blueprint.register') }}" >Registrate</a></p>
                     
                     {% if config.SOCIAL_AUTH_GITHUB %}
                         <div class="mx-2">

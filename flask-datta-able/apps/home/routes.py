@@ -64,12 +64,12 @@ def get_segment(request):
 def start_bot():
     if request.method == "POST":
         start=time.time()
-        print(request.json)
         for arg in request.json:
-            if arg !="city" and arg != "threshold":
+            if arg !="city" and arg != "threshold" and arg != "button" :
                 request.json[arg] = int(request.json[arg])
             elif arg == "threshold":
                 request.json[arg] = float(request.json[arg])
+        
 #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
         lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
         #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
@@ -83,7 +83,7 @@ def start_bot():
             wf.sdr.fc = signal["freq"]
             print(wf.sdr.fc)
             wf.showing_current_station(path=newpath)
-            #------------------------demo ---------------------------#
+            #------------------------------- ---------------------------#
             samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
     return jsonify({'message': time.time()-start})
 
