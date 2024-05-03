@@ -1,7 +1,8 @@
 #------------------------IMPORTAMOS LIBRERIAS-------------------------#
 from apps.home import blueprint
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for, render_template_string
 from flask_login import login_required
+from urllib.parse import quote, unquote
 from jinja2 import TemplateNotFound
 from flask import jsonify
 from apps.home.sdr_fm_scanner import scan 
@@ -17,7 +18,6 @@ import os
 @blueprint.route('/index')
 @login_required
 def index():
-
     return render_template('home/index.html', segment='index')
 
 
@@ -57,24 +57,23 @@ def get_segment(request):
 
     except:
         return None
-    
 
 @blueprint.route('/start_ppm', methods=['POST'])
 @login_required
-def start_bot():
+def start_ppm():
     if request.method == "POST":
+        
+        print('----------------start_ppm---------------')
+        """
         start=time.time()
         print(request.json)
-        for arg in request.json:
-            if arg !="city" and arg != "threshold":
-                request.json[arg] = int(request.json[arg])
-            elif arg == "threshold":
-                request.json[arg] = float(request.json[arg])
 #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
         lista_frecuencias_encontradas=scan(request.json,plot_waterfall=True)
         #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
         for signal in lista_frecuencias_encontradas:
             newpath = f".\\apps\static\\assets\\images\\fm_stations\\{signal['freq'] / 1e6}"
+            newpath = newpath if os.name == 'nt' else newpath.replace('\\', '/')
+            
             if not os.path.exists(newpath):
                 os.makedirs(newpath)
         #------------------------PLOTTING WATERFALL SECTION ---------------------------#
@@ -85,17 +84,34 @@ def start_bot():
             wf.showing_current_station(path=newpath)
             #------------------------demo ---------------------------#
             samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
-    return jsonify({'message': time.time()-start})
+    
+    data_response = [{'freq': d['freq'], 'psd': d['psd']} for d in lista_frecuencias_encontradas]
+    #data_response = json.dumps(data_response)
+    #data_response = quote(data_response)
+    print(data_response)
+    """
 
+    #data_response = [1,2,3]
 
-@blueprint.route('/test_cpu', methods=['GET'])
-def test_cpu():
-    start=time.time()
-    for i in range(1200):
-        a=i**2
-        time.sleep(0.05)
-        print(a)
-    print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
-    response_message = f"mensaje enviado."
+        return redirect(url_for('fm_response'))
+    #return redirect(url_for('home_blueprint.fm_response', data=data_response))
+
+"""
+@blueprint.route('/fm_response', methods=['GET', 'POST'])
+@login_required
+def fm_response():
+    print('----------------fm_response---------------')
+    return render_template('home/fm_response.html')
+
+"""
+
+@blueprint.route('/fm_response')
+@login_required
+def fm_response():
+    data = request.args.get('data')
+    data = unquote(unquote(data))
+    data = json.loads(data)
+    print(data)
+    return render_template('home/fm_response.html', data=data)
 
 
