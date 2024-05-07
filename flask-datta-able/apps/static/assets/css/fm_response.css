@@ -1,0 +1,23 @@
+.menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out; /* Transición de altura */
+  }
+  
+.menu.expanded {
+    height: auto;
+    max-height: 500px; /* Altura máxima del menú cuando está expandido */
+    overflow: auto;  
+}
+
+.boton-fila {
+  cursor: pointer;
+}
+
+
+.selected-row {
+  background-color: lightblue; 
+  color: black; 
+}
+
+

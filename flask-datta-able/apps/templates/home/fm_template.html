@@ -11,7 +11,7 @@
     <div class="pcoded-main-container">
         <h1>FM Template</h1>
 
-        <div class="model">
+        <div class="container-custom-1">
             <div class="radio-inputs">
                 <label class="radio">
                 <input id="psd_radio" type="radio" name="radio" onclick="showTab('psd')" checked>
@@ -25,7 +25,7 @@
         
 
             <section id="psd" class="tabContent">
-                <form id="params_psd" class="params">
+                <form id="params_psd" class="form-custom-1">
                     <label> vars psd</label>
                     <div class="params_psd">
                         <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
@@ -74,9 +74,7 @@
             });
 
             function fm_response() {
-                fetch('/fm_response', {
-                    method : 'GET'
-                })
+                window.location.href = '/fm_response';
             }
 
 
@@ -136,7 +134,7 @@
           }
           </script>   
             
-        
+      
     </div>
     <!-- [ Main Content ] end -->
 

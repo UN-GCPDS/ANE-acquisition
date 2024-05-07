@@ -13,8 +13,6 @@ import time
 import os
 #--------------------------------------------------------------------#
 
-
-
 @blueprint.route('/index')
 @login_required
 def index():
@@ -24,6 +22,7 @@ def index():
 @blueprint.route('/<template>')
 @login_required
 def route_template(template):
+    print('--- general ---------------')
 
     try:
 
@@ -91,19 +90,16 @@ def start_ppm():
     print(data_response)
     """
 
-    #data_response = [1,2,3]
+    data_response = [{"freq": 91.7, "psd":5.139e-06},{"freq":96.3,"psd":2.324e-06},{"freq":99.7,"psd":9.213e-06}]
+    data_response = json.dumps(data_response)
+    data_response = quote(data_response)
+    print(data_response)
 
-        return redirect(url_for('fm_response'))
+    segment = get_segment(request)
+
+    return render_template('home/fm_response.html', segment=segment, data=data_response)
     #return redirect(url_for('home_blueprint.fm_response', data=data_response))
 
-"""
-@blueprint.route('/fm_response', methods=['GET', 'POST'])
-@login_required
-def fm_response():
-    print('----------------fm_response---------------')
-    return render_template('home/fm_response.html')
-
-"""
 
 @blueprint.route('/fm_response')
 @login_required
@@ -111,7 +107,6 @@ def fm_response():
     data = request.args.get('data')
     data = unquote(unquote(data))
     data = json.loads(data)
-    print(data)
-    return render_template('home/fm_response.html', data=data)
+    return render_template('home/fm_response.html', segment=get_segment(request), data=data)
 
 

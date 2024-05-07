@@ -33,16 +33,6 @@
 
 }
 
-/*Models*/ 
-.model{
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin: 20px auto;
-    max-width: 95%;
-    padding: 20px;
-}
-
 .radio-inputs {
     position: relative;
     display: flex;
