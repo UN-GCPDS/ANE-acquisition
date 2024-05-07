@@ -211,7 +211,7 @@ def fm_audio( fs=2.4e6, fc=92.7e6, fc1=200e3, fc2=12e3, d1=10, d2=5, plot=False,
         plt.savefig(imagepath)
         
         #---------------------------GUARDAMOS EL AUDIO DEMODULADO------------------#
-        audiopath=os.path.join(path,f"audio_demodulado{int(fc/1e6)}.wav")
+        audiopath=os.path.join(path,f"audio_demodulado__{(fc/1e6)}.wav")
         audio=Audio(audio, rate=48000)
         with open(audiopath, 'wb') as f:
             f.write(audio.data)

@@ -61,9 +61,8 @@ def get_segment(request):
 @login_required
 def start_ppm():
     if request.method == "POST":
-        
         print('----------------start_ppm---------------')
-        """
+    
         start=time.time()
         print(request.json)
 #-------------------DEMODULACION EN FM DE LAS SEÑALES ENCONTRADAS-----------------------#
@@ -84,29 +83,36 @@ def start_ppm():
             #------------------------demo ---------------------------#
             samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
     
-    data_response = [{'freq': d['freq'], 'psd': d['psd']} for d in lista_frecuencias_encontradas]
-    #data_response = json.dumps(data_response)
-    #data_response = quote(data_response)
-    print(data_response)
-    """
+        data_response = [{'freq': d['freq']/1e6, 'psd': d['psd']} for d in lista_frecuencias_encontradas]
 
-    data_response = [{"freq": 91.7, "psd":5.139e-06},{"freq":96.3,"psd":2.324e-06},{"freq":99.7,"psd":9.213e-06}]
-    data_response = json.dumps(data_response)
-    data_response = quote(data_response)
-    print(data_response)
+        data_response = json.dumps(data_response)
+        data_response = quote(data_response)
+        print(data_response)
 
-    segment = get_segment(request)
+        segment = get_segment(request)
 
-    return render_template('home/fm_response.html', segment=segment, data=data_response)
-    #return redirect(url_for('home_blueprint.fm_response', data=data_response))
+    #return render_template('home/fm_response.html', segment=segment, data=data_response)
+    return redirect(url_for('home_blueprint.fm_response', data=data_response))
 
 
-@blueprint.route('/fm_response')
+@blueprint.route('/fm_response',methods=["GET", "POST"])
 @login_required
 def fm_response():
-    data = request.args.get('data')
-    data = unquote(unquote(data))
-    data = json.loads(data)
-    return render_template('home/fm_response.html', segment=get_segment(request), data=data)
+    if request.method == 'POST':
+        data_response = request.json
+        return jsonify(data_response)  # Devolver los datos como JSON
+    elif request.method == 'GET':
+        data_response = request.args.get('data')
+        data_response = unquote(unquote(data_response))
+        data_response = json.loads(data_response)
+        print(data_response)
+        return render_template('home/fm_response.html', segment=get_segment(request), data=data_response)
+    else:
+        return render_template('home/page-404.html'), 404
+
+@blueprint.route('/example')
+def example():
+    print('---- solicitud de example: ---------------------')
+    return render_template('home/example.html')
 
 
