@@ -11,7 +11,7 @@
     <div class="pcoded-main-container">
         <h1>Análisis En banda FM</h1>
 
-        <div class="model">
+        <div class="container-custom-1">
             <div class="radio-inputs">
                 <label class="radio">
                 <input id="psd_radio" type="radio" name="radio" onclick="showTab('psd')" checked>
@@ -25,7 +25,7 @@
         
 
             <section id="psd" class="tabContent">
-                <form id="params_psd" class="params">
+                <form id="params_psd" class="form-custom-1">
                     <label> vars psd</label>
                     <div class="params_psd">
                         <label>PPM <input type="number" id="ppm" placeholder="texto_sugerencia" value="0"> </label>
@@ -40,6 +40,8 @@
                 </form> 
 
                     <button class="btn btn-primary" id="psd" type="button" onclick="startPPM(this.id)">Start method psd</button>
+                    <button class="btn btn-glow-primary" id="test" type="button" onclick="fm_response()"> fm_response</button>
+                    <button class="btn btn-primary" id="psd" type="button" onclick="example()">example</button>
             
             </section>
 
@@ -72,6 +74,14 @@
                 document.getElementById("psd_radio").checked = true;
             });
 
+            function fm_response() {
+                window.location.href = '/fm_response';
+            }
+
+            function example(){
+                window.location.href = '/example'
+            }
+
 
             function startPPM(id) {
                 const form = document.getElementById('params_psd');
@@ -83,22 +93,21 @@
                 const lnb_lo = form.querySelector('#lnb_lo').value;
                 const city = form.querySelector('#city').value;
                 const gain = form.querySelector('#gain').value;
-                const button =id;
+                const button = id;
             
             
                 const PPMData = {
-                    ppm: ppm,
-                    start: start,
-                    stop: stop,
-                    step: step,
-                    threshold: threshold,
-                    lnb_lo: lnb_lo,
+                    ppm: parseInt(ppm),
+                    start: parseInt(start),
+                    stop: parseInt(stop),
+                    step: parseInt(step),
+                    threshold: parseFloat(threshold),
+                    lnb_lo: parseInt(lnb_lo),
                     city: city,
-                    gain: gain,
+                    gain: parseFloat(gain),
                     button:button,
                 };
                     
-                // Envía la solicitud POST
                 fetch('/start_ppm', {
                     method: 'POST',
                     headers: {
@@ -106,10 +115,18 @@
                     },
                     body: JSON.stringify(PPMData)
                 })
-                
-                .then(response => response.json())
+                .then(response => {
+                    console.log(response)
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('La solicitud POST falló');
+                    }
+                })
                 .then(data => {
-                    alert(data.message);
+                    document.open();
+                    document.write(data);
+                    document.close();
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -131,7 +148,7 @@
           }
           </script>   
             
-        
+      
     </div>
     <!-- [ Main Content ] end -->
 

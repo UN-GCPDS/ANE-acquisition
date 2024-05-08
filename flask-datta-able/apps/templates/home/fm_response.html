@@ -1,0 +1,141 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ config.ASSETS_ROOT }}/css/fm_response.css" {% endblock stylesheets %} {% block content
+    %} <!-- [ Main Content ] start -->
+
+<div class="pcoded-main-container">
+    <div class="pcoded-wrapper">
+        <div class="pcoded-content">
+            <div class="pcoded-inner-content">
+                <!-- [ breadcrumb ] start -->
+                <div class="page-header">
+                    <div class="page-block">
+                        <div class="row align-items-center">
+                            <div class="col-md-12">
+                                <ul class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                    <li class="breadcrumb-item"><a href="javascript:">FM</a></li>
+                                    <li class="breadcrumb-item"><a href="javascript:">Frecuencia encontradas</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- [ breadcrumb ] end -->
+                <div class="main-body">
+                    <div class="page-wrapper">
+                        <!-- [ Main Content ] start -->
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card">
+                                    <div id="view" class="card-header">
+                                        <h5 >Frecuencia</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="menu_frecuencias" class="menu expanded">
+                                            <h5>Lista de frecuencias encontradas </h5>
+                                            <hr>
+                                            <table class="table table-hover">
+                                                <tr>
+                                                    <th> # </th>
+                                                    <th> Frecuencia </th>
+                                                    <th> psd </th>
+                                                </tr>
+                                                {% for item in data %}
+                                                {% set freq_v = item['freq'] %}
+                                                <tr class="boton-fila" onclick="info_freq('{{ freq_v }}')">
+                                                    <th scope="row">{{ item['index'] }}</th>
+                                                    <td> {{ item['freq'] }} </td>
+                                                    <td> {{ item['psd'] }} </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </table>
+                                        </div>
+                                        <h5 id="informacion">Información por estación </h5>
+                                        <hr>
+                                        <p class="mb-0" id="freq_text"> </p>
+                                        <img id="waterfall" src=""
+                                            alt="waterfall__89">
+                                        <img id="demodulacion" src=""
+                                            alt="demodulacion_estacion__89">
+                                        <audio id="audio" src=""
+                                            preload="auto"></audio>
+                                        <button class="btn btn-outline-primary" onclick="reproducirAudio()">Reproducir
+                                            audio</button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- [ Main Content ] end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+
+        const div = document.getElementById("menu_frecuencias");
+        const height = div.clientHeight;
+
+        window.addEventListener('scroll', function () {
+
+            if (window.scrollY <= height / 4) {
+                document.getElementById("menu_frecuencias").classList.add("expanded");
+            } else {
+                document.getElementById("menu_frecuencias").classList.remove("expanded");
+            }
+        });
+
+        function reproducirAudio() {
+            var audio = document.getElementById("audio");
+            audio.play();
+        }
+
+        function info_freq(station){
+            document.getElementById("menu_frecuencias").classList.remove("expanded");
+            var element = document.getElementById("view");
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var freq_text = document.getElementById("freq_text");
+            freq_text.innerHTML = `Información de la estación ${station}`;
+
+            var filas = document.querySelectorAll('.boton-fila');
+            filas.forEach(function(fila) {
+                fila.classList.remove('selected-row');
+            });
+            event.currentTarget.classList.add('selected-row');
+
+            var ASSETS_ROOT = '{{ config.ASSETS_ROOT }}';
+            var waterfall = document.getElementById('waterfall');
+            var demodulacion = document.getElementById('demodulacion');
+            var audio = document.getElementById('audio');
+
+            const path_waterfall = `${ASSETS_ROOT}/images/fm_stations/${station}/waterfall__${station}.png`;
+            const path_demodulacion = `${ASSETS_ROOT}/images/fm_stations/${station}/demodulacion_estacion__${station}.png`;
+            const path_audio = `${ASSETS_ROOT}/images/fm_stations/${station}/audio_demodulado__${station}.wav`;
+            waterfall.src = path_waterfall;
+            demodulacion.src = path_demodulacion;
+            audio.src = path_audio;
+        
+        }
+    </script>
+
+
+
+</div>
+
+
+
+<!-- [ Main Content ] end -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
