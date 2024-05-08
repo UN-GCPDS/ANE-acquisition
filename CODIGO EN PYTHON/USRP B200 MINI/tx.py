@@ -7,3 +7,4 @@ center_freq = 88.300e6
 sample_rate = 200e3
 gain = 60 # [dB] start low then work your way up
 usrp.send_waveform(samples, duration, center_freq, sample_rate, [0], gain)
+# download uhd driver
