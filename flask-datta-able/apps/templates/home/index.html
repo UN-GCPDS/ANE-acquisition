@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Inicio {% endblock %} 
+{% block title %} Login {% endblock %} 
 
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -30,8 +30,66 @@
                                         </div>
                                     </div>
                                 </div>
+<!----------------------SE AGREGO LAS WIDGETS PARA EL RESTO DE EMISORAS---------------- -->
                                 <!--[ daily sales section ] end-->
                                 <!--[ Monthly  sales section ] starts-->
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="card daily-sales">
+                                        <div class="card-block">
+                                            <a href="/fm_template">
+                                                <h3>UHF</h3>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Monthly  sales section ] end-->
+                                <!--[ year  sales section ] starts-->
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="card daily-sales">
+                                        <div class="card-block">
+                                            <a href="/fm_template">
+                                                <h3>VHF</h3>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ year  sales section ] end-->
+                                <!--[ Recent Users ] start-->
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="card daily-sales">
+                                        <div class="card-block">
+                                            <a href="/fm_template">
+                                                <h3>TDT</h3>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Recent Users ] end-->
+
+                                <!-- [ statistics year chart ] start -->
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="card daily-sales">
+                                        <div class="card-block">
+                                            <a href="/fm_template">
+                                                <h3>L</h3>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- [ statistics year chart ] end -->
+                                <!--[social-media section] start-->
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="card daily-sales">
+                                        <div class="card-block">
+                                            <a href="/fm_template">
+                                                <h3>5G</h3>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+    <!-- DE ESTA SECCION PARA ABAJO ES TODO EL CODIGO QUE SE COMENTO DE PESTAÑAS, GRAFICOS ,..  QUE PUEDEN SERVIR EN UN FUTURO  -->
+                                <!-- [ daily sales section ] end
+                             
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card Monthly-sales">
                                         <div class="card-block">
@@ -56,7 +114,7 @@
                                 </div>
                                 <!--[ Monthly  sales section ] end-->
                                 <!--[ year  sales section ] starts-->
-                                <div class="col-md-12 col-xl-4">
+                                <!-- <div class="col-md-12 col-xl-4">
                                     <div class="card yearly-sales">
                                         <div class="card-block">
                                             <h6 class="mb-4">Yearly Sales</h6>
@@ -78,9 +136,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!--[ year  sales section ] end-->
-                                <!--[ Recent Users ] start-->
-                                <div class="col-xl-8 col-md-6">
+
+                                [ Recent Users ] start-->
+                                <!-- <div class="col-xl-8 col-md-6">
                                     <div class="card Recent-Users">
                                         <div class="card-header">
                                             <h5>Recent Users</h5>
@@ -184,11 +242,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <!--[ Recent Users ] end-->
+                                </div> -->
 
-                                <!-- [ statistics year chart ] start -->
-                                <div class="col-xl-4 col-md-6">
+                                <!-- <div class="col-xl-4 col-md-6">
                                     <div class="card card-event">
                                         <div class="card-block">
                                             <div class="row align-items-center justify-content-center">
@@ -229,8 +285,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- [ statistics year chart ] end -->
-                                <!--[social-media section] start-->
+
                                 <div class="col-md-12 col-xl-4">
                                     <div class="card card-social">
                                         <div class="card-block border-bottom">
@@ -344,9 +399,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <!--[social-media section] end-->
-                                <!-- [ rating list ] starts-->
+                                </div> --> 
+<!-- 
                                 <div class="col-xl-4 col-md-6">
                                     <div class="card user-list">
                                         <div class="card-header">
@@ -416,9 +470,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --> 
                                 <!-- [ rating list ] end-->
-                                <div class="col-xl-8 col-md-12 m-b-30">
+                                <!-- <div class="col-xl-8 col-md-12 m-b-30">
                                     <ul class="nav nav-tabs" id="myTab" role="tablist">
                                         <li class="nav-item">
                                             <a class="nav-link" id="home-tab" data-toggle="tab" href="#home" role="tab"
@@ -715,14 +769,16 @@
                                             </table>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
 
                             </div>
                             <!-- [ Main Content ] end -->
                         </div>
                     </div>
                 </div>
+
             </div>
+                
 
         </div>
     </div>
