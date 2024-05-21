@@ -83,7 +83,7 @@ def start_ppm():
             #------------------------demo ---------------------------#
             samples = fm_audio(fc=int(signal["freq"]), plot=True,path=newpath)
     
-        data_response = [{'freq': d['freq']/1e6, 'psd': d['psd']} for d in lista_frecuencias_encontradas]
+        data_response = [{'freq': d['freq']/1e6, 'psd': d['psd'],'max pwr': max(d['array']),'min pwr': min(d['array'])} for d in lista_frecuencias_encontradas]
 
         data_response = json.dumps(data_response)
         data_response = quote(data_response)

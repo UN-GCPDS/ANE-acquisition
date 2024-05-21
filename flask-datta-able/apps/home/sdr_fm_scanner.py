@@ -16,9 +16,9 @@ from apps.home.funciones import find_highest_magnitudes,find_relative_frequency,
 from apps.home.water_fall_class import Waterfall
 
 '''
-num_samples = Number of samples to read from the RTL-SDR device 
-sample_rate = Rate which is reading a sample 
-time_duration = This is the time duration of the captured signal is determined by the number of samples and the sample rate , is calculated by num_samples / sample_rate
+num_samples = Numero de muestras para leer del RTL-SDR 
+sample_rate = tiempo de muestreo
+time_duration = tiempo de duracion de captura de la señal se estima como  num_samples / sample_rate
 
 '''
 num_samples = 131072
@@ -38,26 +38,28 @@ def read_samples(sdr, freq):
     return iq_samples
 
 def psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,threshold):
-    '''Este metodo realiza un escaneo  '''
+    '''
+    Este metodo realiza un escaneo para determinar las frecuencias presentes en un rango de frecuencias utilizando decimacion
+    , estimando psd por medio del metodo de welch y 
+    
+    '''
     radio_stations = []
     threshold=threshold*10**-6
     
     for i in range(freq,freq_stop,freq_step):
         print(f"Scanning frequency: {freq / 1e6} MHz")
-        # tune_to_frequency(sdr, freq, lo_frequency)
         iq_samples =read_samples(sdr, freq)
         iq_samples = sig.decimate(iq_samples, 24)
         f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
         peak_indices, frequencies = find_highest_magnitudes(psd, num_peaks=1, sample_rate=sample_rate / 24, fft_size=1024)
-        print(f"lasfrecuencias {frequencies}")
+        print(f"las frecuencias {frequencies}")
         if peak_indices:
                 peak_index = peak_indices[0]
                 peak_frequency = frequencies[0]
                 peak_psd = psd[peak_index]
                 print(f"Peak frequency: {peak_frequency} Hz, PSD: {peak_psd}")
-                # Group nearby frequencies as one station
-                if peak_psd >= threshold:  # Check if the PSD value is above the radio station threshold          
-                    print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
+                if peak_psd >= threshold:  # Miramos si el psd esta por encima del umbral          
+                    print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # entregamos la señal con el psd mas alto
                     current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6),"array":psd}
                     radio_stations.append(current_station)
                     radio_stations=find_relative_frequency(radio_stations)
@@ -73,7 +75,7 @@ def scan(args,plot_waterfall=False):
     lo_frequency = args["lnb_lo"]
     freq = args["start"]
     last_detected_station = None
-    min_distance = 200000  # Minimum distance between stations in Hz
+    min_distance = 200000  # Distancia minima entre estaciones
     
     #Se tiene que variar el treshold de acuerdo a las potencia de la señal y la ubicacion en la cual estan
     radio_psd_threshold = 3e-08
@@ -83,23 +85,11 @@ def scan(args,plot_waterfall=False):
     radio_stations=psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args["threshold"])
     print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
     print("\nDetected radio stations:")
-    # sdr.close()
     # #------------------------PLOTTING WATERFALL SECTION ---------------------------#
-    # wf = Waterfall()
     for station in radio_stations:
         print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
-        # wf.sdr.fc = station["freq"]
-        # if plot_waterfall:
-        #     wf.showing_current_station()
-        # sdr.close()
     #---------------------------STATION VERIFICATION ---------------------------#
     directory = os.path.dirname(os.path.realpath(__file__))
     file_path = Path(directory)/"Radioemisoras_ane.csv"
-    # print(file_path)
-    # verification_dic=station_verification(station["freq"], args["city"], file_path)
     return radio_stations
 
-
-# if __name__ == '__main__':
-#     args={'ppm': 0, 'gain': 15, 'threshold': 0.15, 'lnb_lo': -125000000, 'start': 88000000, 'stop': 108000000, 'step': 100000, 'city': 'CALDAS'}
-#     lista_frecuencias=scan(args=args)
