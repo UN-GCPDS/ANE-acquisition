@@ -16,9 +16,9 @@ from apps.home.funciones import find_highest_magnitudes,find_relative_frequency,
 from apps.home.water_fall_class import Waterfall
 
 '''
-num_samples = Number of samples to read from the RTL-SDR device 
-sample_rate = Rate which is reading a sample 
-time_duration = This is the time duration of the captured signal is determined by the number of samples and the sample rate , is calculated by num_samples / sample_rate
+num_samples = Numero de muestras que lee el RTL-SDR  
+sample_rate = Tasa de muestreo 
+time_duration = Tiempo de duracion de la señal el cual se calcula como num_samples / sample_rate
 
 '''
 num_samples = 131072
@@ -30,21 +30,21 @@ def read_samples(sdr, freq):
     f_offset = 25000
     sample_rate = 2400000
     sdr.center_freq = freq - f_offset
-    time.sleep(0.01) # originally, 0.06, but too slow
-    iq_samples = sdr.read_samples(2**15) #originally 1221376, but too slow, the lower this is though the lower the PSD integrity is...btw must be powers of 2...
+    time.sleep(0.01) # 
+    iq_samples = sdr.read_samples(2**17) #Numero de muestras
     iq_samples = iq_samples[0:600000]
     fc1 = np.exp(-1.0j * 2.0 * np.pi * f_offset / sample_rate * np.arange(len(iq_samples)))
     iq_samples = iq_samples * fc1
     return iq_samples
 
 def psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,threshold):
-    '''Este metodo realiza un escaneo  '''
+    '''Este metodo realiza un escaneo para verificar la existencia o no de una señal , decima y aplica psd por metodo
+     de welch '''
     radio_stations = []
     threshold=threshold*10**-6
     
     for i in range(freq,freq_stop,freq_step):
         print(f"Scanning frequency: {freq / 1e6} MHz")
-        # tune_to_frequency(sdr, freq, lo_frequency)
         iq_samples =read_samples(sdr, freq)
         iq_samples = sig.decimate(iq_samples, 24)
         f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
@@ -55,9 +55,9 @@ def psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,t
                 peak_frequency = frequencies[0]
                 peak_psd = psd[peak_index]
                 print(f"Peak frequency: {peak_frequency} Hz, PSD: {peak_psd}")
-                # Group nearby frequencies as one station
-                if peak_psd >= threshold:  # Check if the PSD value is above the radio station threshold          
-                    print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Print the strong signal as it is found
+                #Verificamos si el psd esta por encima del threshold
+                if peak_psd >= threshold:  # Miramos si el valor del psd se encuentra por encima del threshold        
+                    print(f"Strong signal found at {freq / 1e6} MHz, PSD: {peak_psd}")  # Entregamos la señal con psd mayor
                     current_station={'freq': freq, 'psd': peak_psd, 'band': (freq / 1e6),"array":psd}
                     radio_stations.append(current_station)
                     radio_stations=find_relative_frequency(radio_stations)
@@ -73,7 +73,7 @@ def scan(args,plot_waterfall=False):
     lo_frequency = args["lnb_lo"]
     freq = args["start"]
     last_detected_station = None
-    min_distance = 200000  # Minimum distance between stations in Hz
+    min_distance = 200000  # Distancia minima entre estaciones
     
     #Se tiene que variar el treshold de acuerdo a las potencia de la señal y la ubicacion en la cual estan
     radio_psd_threshold = 3e-08
@@ -83,23 +83,17 @@ def scan(args,plot_waterfall=False):
     radio_stations=psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,args["threshold"])
     print(f"el tiempo que se demora el codigo en correr es {time.time()-start}")
     print("\nDetected radio stations:")
-    # sdr.close()
+
     # #------------------------PLOTTING WATERFALL SECTION ---------------------------#
-    # wf = Waterfall()
+
     for station in radio_stations:
         print(f"Band: {station['freq'] / 1e6} MHz - PSD: {station['psd']}")
-        # wf.sdr.fc = station["freq"]
-        # if plot_waterfall:
-        #     wf.showing_current_station()
-        # sdr.close()
+
     #---------------------------STATION VERIFICATION ---------------------------#
+
     directory = os.path.dirname(os.path.realpath(__file__))
     file_path = Path(directory)/"Radioemisoras_ane.csv"
-    # print(file_path)
-    # verification_dic=station_verification(station["freq"], args["city"], file_path)
+
     return radio_stations
 
 
-# if __name__ == '__main__':
-#     args={'ppm': 0, 'gain': 15, 'threshold': 0.15, 'lnb_lo': -125000000, 'start': 88000000, 'stop': 108000000, 'step': 100000, 'city': 'CALDAS'}
-#     lista_frecuencias=scan(args=args)
