@@ -44,6 +44,8 @@
                                                     <th> # </th>
                                                     <th> Frecuencia </th>
                                                     <th> psd </th>
+                                                    <th> max pwr </th>
+                                                    <th> min pwr </th>
                                                 </tr>
                                                 {% for item in data %}
                                                 {% set freq_v = item['freq'] %}
@@ -51,6 +53,8 @@
                                                     <th scope="row">{{ item['index'] }}</th>
                                                     <td> {{ item['freq'] }} </td>
                                                     <td> {{ item['psd'] }} </td>
+                                                    <td> {{ item['max pwr'] }} </td>
+                                                    <td> {{ item['min pwr'] }} </td>
                                                 </tr>
                                                 {% endfor %}
                                             </table>
