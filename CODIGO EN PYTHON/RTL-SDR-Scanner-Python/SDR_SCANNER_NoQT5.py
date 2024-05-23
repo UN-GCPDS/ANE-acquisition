@@ -91,26 +91,6 @@ def station_verification(radio, state, file_path):
     return not_registered_stations, registered_stations
 
 
-def detect_harmonics(radio_stations, harmonic_threshold=3, max_harmonic=10, shape_margin=1e3, bin_width=1e3):
-    harmonic_candidates = []
-    for station in radio_stations:
-        freq = station['freq']
-        psd = station['psd']
-        harmonics = [freq * (i + 1) for i in range(1, max_harmonic + 1)]
-        strong_harmonics = 0
-        for harmonic in harmonics:
-            for candidate in radio_stations:
-                if abs(candidate['freq'] - harmonic) < shape_margin:
-                    if check_psd_shape(candidate, radio_stations, bin_width):
-                        strong_harmonics += 1
-                    break
-        if strong_harmonics >= harmonic_threshold:
-            harmonic_candidates.append(
-                {'freq': freq, 'harmonics': strong_harmonics})
-
-    return harmonic_candidates
-
-
 def find_relative_frequency(radio):
     try:
         current = radio[-1]
