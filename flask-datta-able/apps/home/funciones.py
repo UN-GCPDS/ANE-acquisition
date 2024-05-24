@@ -52,6 +52,24 @@ def find_relative_frequency(radio):
             return radio
     except IndexError as e:
         return radio
+    
+def PWR_SDR(x):
+    '''
+    This function calculate the PWR
+    Argument
+        x --(np array) array numpy with iQ samples
+
+    Returns: 
+        avg_pwr --(float) average pwr of the signal
+        max_pwr --(float) max pwr of the signal
+        min_pwr --(float) min pwr of the signal
+    
+    '''
+    avg_pwr = np.mean(np.abs(x)**2)
+    max_pwr=max(abs(x**2))
+    min_pwr=min(abs(x**2))
+    return avg_pwr,max_pwr,min_pwr
+
 
 def tune_to_frequency(radio, true_frequency, lo_frequency):
     """
