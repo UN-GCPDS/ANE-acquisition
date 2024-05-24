@@ -28,17 +28,18 @@ freq_2 = 90.5e6
 freqs1, psd1 = get_psd(freq_1, sdr)
 freqs2, psd2 = get_psd(freq_2, sdr)
 
-psd1_media = 10 * np.log10(np.mean(psd1))
-psd2_media = 10 * np.log10(np.mean(psd2))
+psd1_media_dB = 10 * np.log10(np.mean(psd1))
+psd2_media_dB = 10 * np.log10(np.mean(psd2))
 
 # Cerrar el dispositivo RTL-SDR
 sdr.close()
 
 plt.gca().text(0.05, 0.95, 'PSD {:.2f} MHz: {:.2f}'.format(
-    freq_1/1e6, psd1_media), transform=plt.gca().transAxes)
+    freq_1/1e6, psd1_media_dB), transform=plt.gca().transAxes)
 plt.gca().text(0.05, 0.9, 'PSD {:.2f} MHz: {:.2f}'.format(
-    freq_2/1e6, psd2_media), transform=plt.gca().transAxes)
-plt.title(f'Power Spectral Density en {freq_1/1e6} MHz y {freq_2/1e6} MHz')
+    freq_2/1e6, psd2_media_dB), transform=plt.gca().transAxes)
+
+plt.title(f'Power Spectral Density de {freq_1/1e6} MHz y {freq_2/1e6} MHz')
 plt.xlabel('Frequency (MHz)')
 plt.ylabel('Power Density')
 plt.grid(True)
