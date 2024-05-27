@@ -26,7 +26,7 @@ def psd_graph(iq_samples):
 
 # configure device
 sdr.sample_rate = 2.4e6  # Ancho de banda de 2 MHz
-sdr.gain = 4
+sdr.gain = 25
 start = 88e6
 stop = 108e6
 step = 0.1e6
@@ -38,13 +38,6 @@ max_pwr_list = []
 min_pwr_list = []
 avg_pwr_list = []
 
-dic = dict([
-    ('Frequency', None),
-    ('Max PWR', None),
-    ('Min PWR', None),
-    ('Avg PWR', None),
-])
-
 while freq <= stop:
     print(f"Scanning frequency: {freq / 1e6} MHz")
     tune_to_frequency(sdr, freq, lo_frequency)
@@ -53,10 +46,6 @@ while freq <= stop:
     max_pwr = np.max(np.abs(iq_samples)**2)
     min_pwr = np.min(np.abs(iq_samples)**2)
     avg_pwr = np.mean(np.abs(iq_samples)**2)
-
-    # Agregar nuevos valores al diccionario en cada iteración
-    # dic[freq/1e6] = {'Max PWR': max_pwr,
-    # 'Min PWR': min_pwr, 'Avg PWR': avg_pwr}
 
     frequencies.append(freq/1e6)
     max_pwr_list.append(max_pwr)
