@@ -21,6 +21,7 @@ Compararemos el PSD en la superposición de los dos conjuntos (90 MHz - 91 MHz)
 y verificaremos si el SDR nos da un resultado estable a pesar de que el downsampling en teoría
 solo procesa la mitad de la señal.
 '''
+#Una funcion que va a recibir frecuencia inferior y frecuencia superior, va a recibir el samplerate y el tiempo (Cuadrar con 95 y luego probar con frecuencias mas altas)
 
 #-----------------LLAMAMOS AL OBJETO DEL HACKRF-----------------------#
 hackrf = HackRF()
