@@ -30,8 +30,8 @@ def read_samples(sdr, freq):
     f_offset = 25000
     sample_rate = 2400000
     sdr.center_freq = freq - f_offset
-    time.sleep(0.01) # originally, 0.06, but too slow
-    iq_samples = sdr.read_samples(2**15) #originally 1221376, but too slow, the lower this is though the lower the PSD integrity is...btw must be powers of 2...
+    time.sleep(0.01) 
+    iq_samples = sdr.read_samples(2**15) 
     iq_samples = iq_samples[0:600000]
     fc1 = np.exp(-1.0j * 2.0 * np.pi * f_offset / sample_rate * np.arange(len(iq_samples)))
     iq_samples = iq_samples * fc1
@@ -48,11 +48,13 @@ def psd_scanning(sdr,freq,freq_stop,freq_step,lo_frequency,radio_psd_threshold,t
     
     for i in range(freq,freq_stop,freq_step):
         print(f"Scanning frequency: {freq / 1e6} MHz")
-        iq_samples =read_samples(sdr, freq)
+        #----------SE LEE LAS MUESTRAS DEL SDR ---------------------#
+        iq_samples = read_samples(sdr, freq)
+        #----------SE PROCEDE A REALIZAR DECIMACION DE LA SEÑAL --------------------#
         iq_samples = sig.decimate(iq_samples, 24)
+        
         f, psd = sig.welch(iq_samples, fs=sample_rate / 24, nperseg=1024)
         peak_indices, frequencies = find_highest_magnitudes(psd, num_peaks=1, sample_rate=sample_rate / 24, fft_size=1024)
-        print(f"las frecuencias {frequencies}")
         if peak_indices:
                 peak_index = peak_indices[0]
                 peak_frequency = frequencies[0]
