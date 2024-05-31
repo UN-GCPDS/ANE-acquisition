@@ -60,7 +60,7 @@ class Scanner:
         plt.grid(True)
         plt.show()
 
-hackrf = ScannerApp()
+hackrf = Scanner()
 
 hackrf.scan()
 hackrf.plot_psd()
