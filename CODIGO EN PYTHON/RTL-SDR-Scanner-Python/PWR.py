@@ -18,7 +18,7 @@ def psd_graph(iq_samples):
 
 # configure device
 sdr.sample_rate = 2.4e6  # Ancho de banda de 2 MHz
-sdr.gain = 4
+sdr.gain = 25
 start = 88e6
 stop = 108e6
 step = 0.1e6
