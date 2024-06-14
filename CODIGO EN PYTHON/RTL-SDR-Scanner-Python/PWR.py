@@ -2,17 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import psd
 from scipy import signal as sig
-from rtlsdr import RtlSdr
+from hackrf import HackRF
 
-sdr = RtlSdr()
-
-
-def tune_to_frequency(radio, true_frequency, lo_frequency):
-    shifted_frequency = true_frequency + lo_frequency
-    sdr.center_freq = shifted_frequency
-    print(f"Tuned to {true_frequency /
-                      1e6} MHz (shifted to {shifted_frequency / 1e6} MHz)")
-
+sdr = HackRF()
 
 def psd_graph(iq_samples):
     # use matplotlib to estimate and plot the PSD
@@ -30,7 +22,6 @@ sdr.gain = 4
 start = 88e6
 stop = 108e6
 step = 0.1e6
-lo_frequency = -125e6
 freq = start
 
 frequencies = []
@@ -38,25 +29,14 @@ max_pwr_list = []
 min_pwr_list = []
 avg_pwr_list = []
 
-dic = dict([
-    ('Frequency', None),
-    ('Max PWR', None),
-    ('Min PWR', None),
-    ('Avg PWR', None),
-])
-
 while freq <= stop:
     print(f"Scanning frequency: {freq / 1e6} MHz")
-    tune_to_frequency(sdr, freq, lo_frequency)
+    sdr.center_freq(freq)
     iq_samples = sdr.read_samples(2**18)
     iq_samples = sig.decimate(iq_samples, 24)
     max_pwr = np.max(np.abs(iq_samples)**2)
     min_pwr = np.min(np.abs(iq_samples)**2)
     avg_pwr = np.mean(np.abs(iq_samples)**2)
-
-    # Agregar nuevos valores al diccionario en cada iteración
-    # dic[freq/1e6] = {'Max PWR': max_pwr,
-    # 'Min PWR': min_pwr, 'Avg PWR': avg_pwr}
 
     frequencies.append(freq/1e6)
     max_pwr_list.append(max_pwr)
