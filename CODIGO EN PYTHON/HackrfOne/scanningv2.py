@@ -1,17 +1,18 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from hackrf import HackRF
+from pyhackrf2 import HackRF
 from scipy import signal as sig
 from gcpds.filters import frequency as flt
+from scipy.integrate import simps
 
 class scanning():
-    def __init__(self, device=HackRF(), bandwidth=20e6, samples_limit=5e5, vga_gain=16, lna_gain=16, amp_status=False):
+    def __init__(self, device=HackRF(), bandwidth=20e6, samples_limit=5e5, vga_gain=16, lna_gain=0, amp_status=False):
         self.hackrf = device
         self.hackrf.filter_bandwidth = bandwidth
         self.hackrf.sample_count_limit = samples_limit
-        self.hackrf.vga_gain = vga_gain
-        self.hackrf.lna_gain = lna_gain
+        self.hackrf.vga_gain = vga_gain     # Baseband gain
+        self.hackrf.lna_gain = lna_gain     # IF gain
         self.hackrf.amplifier_on = amp_status
 
     def scan(self, start=88e6, stop=108e6, sample_rate=20e6, duration=0.1):
@@ -35,7 +36,10 @@ class scanning():
         
         i, q = np.real(iq_samples), np.imag(iq_samples)
 
-        return i, q, iq_samples
+        return i, q
+    
+    i_samples_list = []
+    q_samples_list = []
     
     def wide_scan(self, start=88e6, stops=108e6, sample_rate=20e6, duration=0.1):
         self.start = start
@@ -43,57 +47,72 @@ class scanning():
         self.sample_rate = sample_rate
         self.duration = duration
         self.freq = start
-        i_samples_list = []
-        q_samples_list = []
+        
         
         while self.freq < self.stops:
             print(f"Scanning frequency: {(self.freq + self.sample_rate/2) / 1e6} MHz con un sample rate de: {self.sample_rate/1e6}M")
-            i, q, iq_samples = self.scan(self.freq, self.freq+self.sample_rate, self.sample_rate, self.duration)
-            i_samples_list.append(i)
-            q_samples_list.append(q)
-
-            plt.psd(iq_samples, 2048, self.sample_rate/1e6, self.freq/1e6+self.sample_rate/2/1e6)
-            plt.show()
+            i, q = self.scan(self.freq, self.freq+self.sample_rate, self.sample_rate, self.duration)
 
             self.freq += self.sample_rate
         
-        return i_samples_list, q_samples_list
+        return i, q
     
-    # def concat(self, i_samples, q_samples):
-    #     i_samples = np.array(i_samples).flatten()
-    #     q_samples = np.array(q_samples).flatten()
+    def decimate(self, i, q, decimate):
+        i = np.array(i)
+        q = np.array(q)
+
+        i = i[::decimate]
+        q = q[::decimate]
         
-    #     return i_samples, q_samples
+        iq_samples = i + 1j*q
+
+        return i, q, iq_samples
+    
+    def power(self, iq_samples, interest_freq):
+        psd, f = plt.psd(iq_samples, NFFT=2024, Fs=hackrf.sample_rate/1e6, Fc=(hackrf.start + hackrf.stop) / 2 / 1e6)
+        plt.show()
+
+        psd_linear = 10**(psd/10) 
+        
+        # Frecuencias de interés (en MHz)
+        f_low = interest_freq-0.15
+        f_high = interest_freq+0.15
+
+        # Filtrar los índices de las frecuencias dentro del rango de interés
+        indices = np.where((f >= f_low) & (f <= f_high))
+
+        # Extraer las frecuencias y la PSD en ese rango
+        f_range = f[indices]
+        psd_range_linear = psd_linear[indices]
+
+        # Integrar la PSD sobre el rango de frecuencias para obtener la potencia total en el rango
+        # La función simps realiza la integración numérica usando el método de Simpson
+        power = simps(psd_range_linear)
+
+        print(f'La potencia en el rango de {f_low} MHz a {f_high} MHz es {power/1e3:.2f}mW')
+
+        return power
+        
+    
+    def concat(self, i_samples, q_samples):
+        i_samples = np.array(i_samples).flatten()
+        q_samples = np.array(q_samples).flatten()
+        
+        return i_samples, q_samples
 
 
 hackrf = scanning()
 
-# i1, q1, iq_samples1 = hackrf.scan(88e6, 108e6, 20e6)
-# i2, q2, iq_samples2 = hackrf.scan(89e6, 109e6, 20e6)
+i, q = hackrf.scan(start=88e6, stop=108e6, sample_rate=20e6, duration=1)
 
-# plt.figure(figsize=(10, 5))
-# plt.subplot(2, 1, 1) 
-# plt.psd(iq_samples1, 1024, hackrf.sample_rate/1e6, 98)
-# plt.subplot(2, 1, 2)
-# plt.psd(iq_samples2, 1024, hackrf.sample_rate/1e6, 99)
-# plt.grid(True)
-# plt.show()
+#i = np.array(i).flatten()
+#q = np.array(q).flatten()
 
-# i, q, iq_samples = hackrf.scan(98e6,108e6, 10e6)
+plt.psd(i + 1j*q, 1024, hackrf.sample_rate/1e6, (hackrf.start+hackrf.stop)/2/1e6)
+#plt.ylim(-90, -20)
+plt.show()
 
-# plt.psd(iq_samples, 1024, hackrf.sample_rate/1e6, (hackrf.start/1e6 + hackrf.stop/1e6) / 2)
-# plt.grid(True)
-# plt.show()
-
-i_samples_list, q_samples_list = hackrf.wide_scan(start=88e6, stops=108e6, sample_rate=20e6, duration=0.1)
-
-#i_samples, q_samples = hackrf.concat(i_samples_list, q_samples_list)
-
-#psd, freq  = plt.psd(i_samples + 1j*q_samples, 1024, 10, 98)
-# plt.close()
-# plt.plot(freq, 10*np.log10(psd))
-# plt.grid(True)
-# plt.show()
+#hackrf.power(iq_samples, interest_freq=105.7)
 
 
 
