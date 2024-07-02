@@ -7,7 +7,7 @@ from gcpds.filters import frequency as flt
 from scipy.integrate import simps
 
 class scanning():
-    def __init__(self, device=HackRF(), bandwidth=20e6, samples_limit=5e5, vga_gain=16, lna_gain=0, amp_status=False):
+    def __init__(self, device=HackRF(), bandwidth=20e6, samples_limit=5e5, vga_gain=15, lna_gain=0, amp_status=False):
         self.hackrf = device
         self.hackrf.filter_bandwidth = bandwidth
         self.hackrf.sample_count_limit = samples_limit
@@ -23,13 +23,24 @@ class scanning():
 
         if (stop - start) > sample_rate:
             raise ValueError("El rango de frecuencias no se puede manejar Sen un solo ensamblaje con la tasa de muestreo proporcionada.")
-
+        
         self.hackrf.sample_rate = self.sample_rate
         self.hackrf.center_freq = (self.start + self.stop) / 2
         
         num_samples = int(self.sample_rate * self.duration)
+
+        self.hackrf.sample_count_limit = num_samples
+
+        self.hackrf.start_rx()
+        time.sleep(1) # you can do other things in the meanwhile
+        self.hackrf.stop_rx()
+
+        values = np.array(self.hackrf.buffer).astype(np.int8)
+        iq_samples = values.astype(np.float64).view(np.complex128)
+        iq_samples /= 127.5
+        iq_samples -= 1 + 1j
         
-        iq_samples = self.hackrf.read_samples(num_samples) #Aquí se genera el error
+        #iq_samples = self.hackrf.read_samples(num_samples) #Aquí se generaba el error
         
         high100 = flt.GenericButterHighPass(f0=0.01, N=1)
         iq_samples = high100(iq_samples, fs=250)
@@ -38,24 +49,25 @@ class scanning():
 
         return i, q
     
-    i_samples_list = []
-    q_samples_list = []
-    
     def wide_scan(self, start=88e6, stops=108e6, sample_rate=20e6, duration=0.1):
+        #self.i_samples_list = []
+        #self.q_samples_list = []
         self.start = start
         self.stops = stops
         self.sample_rate = sample_rate
         self.duration = duration
         self.freq = start
         
-        
         while self.freq < self.stops:
             print(f"Scanning frequency: {(self.freq + self.sample_rate/2) / 1e6} MHz con un sample rate de: {self.sample_rate/1e6}M")
             i, q = self.scan(self.freq, self.freq+self.sample_rate, self.sample_rate, self.duration)
 
+            #self.i_samples_list.extend(i)
+            #self.q_samples_list.extend(q)
+
             self.freq += self.sample_rate
         
-        return i, q
+        return i, q #self.q_samples_list, self.q_samples_list
     
     def decimate(self, i, q, decimate):
         i = np.array(i)
@@ -103,13 +115,12 @@ class scanning():
 
 hackrf = scanning()
 
-i, q = hackrf.scan(start=88e6, stop=108e6, sample_rate=20e6, duration=1)
+i, q = hackrf.wide_scan(start=88e6, stops=108e6, sample_rate=10e6, duration=1)
 
-#i = np.array(i).flatten()
-#q = np.array(q).flatten()
+#i = np.array(i)#.flatten()
+#q = np.array(q)#.flatten()
 
 plt.psd(i + 1j*q, 1024, hackrf.sample_rate/1e6, (hackrf.start+hackrf.stop)/2/1e6)
-#plt.ylim(-90, -20)
 plt.show()
 
 #hackrf.power(iq_samples, interest_freq=105.7)
